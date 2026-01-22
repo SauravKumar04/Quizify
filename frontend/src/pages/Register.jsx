@@ -56,26 +56,57 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 sm:space-y-8">
-        {/* Logo & Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-900 rounded-lg flex items-center justify-center shadow-sm">
-              <BsLightningFill className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="max-w-6xl w-full bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="grid lg:grid-cols-2 gap-0">
+          {/* Branding Side */}
+          <div className="hidden lg:flex bg-slate-900 p-12 flex-col justify-center items-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900"></div>
+            <div className="relative z-10 text-center">
+              <div className="flex justify-center mb-8">
+                <div className="relative group">
+                  <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-xl">
+                    <BsLightningFill className="w-12 h-12 text-slate-900" />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-slate-900"></div>
+                </div>
+              </div>
+              <h1 className="text-5xl font-bold mb-4 tracking-tight">
+                Quizify
+              </h1>
+              <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-px w-12 bg-slate-600"></div>
+                <p className="text-sm font-medium text-slate-300 uppercase tracking-wider">Test Your Knowledge</p>
+                <div className="h-px w-12 bg-slate-600"></div>
+              </div>
+              <p className="text-slate-300 text-lg max-w-sm mx-auto">
+                Join thousands of learners testing their knowledge with interactive quizzes
+              </p>
             </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-            Join Quizify
-          </h2>
-          <p className="mt-3 text-slate-600 text-base sm:text-lg">
-            Start your learning adventure today
-          </p>
-        </div>
 
-        {/* Register Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 border border-gray-200">
-          <form className="space-y-4 sm:space-y-5" onSubmit={handleSubmit}>
+          {/* Form Side */}
+          <div className="p-6 sm:p-8 lg:p-12">
+            {/* Mobile Logo */}
+            <div className="lg:hidden text-center mb-6">
+              <div className="flex justify-center mb-3">
+                <div className="w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                  <BsLightningFill className="w-7 h-7 text-white" />
+                </div>
+              </div>
+              <h1 className="text-2xl font-bold text-slate-900">Quizify</h1>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                Join Quizify
+              </h2>
+              <p className="text-slate-600 text-sm">
+                Start your learning adventure today
+              </p>
+            </div>
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3">
                 <div className="flex-shrink-0">
@@ -89,12 +120,12 @@ const Register = () => {
 
             {/* Name Input */}
             <div>
-              <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Full Name
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FiUser className="h-5 w-5 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiUser className="h-4 w-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
                 </div>
                 <input
                   id="name"
@@ -103,7 +134,7 @@ const Register = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3 sm:py-3.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm sm:text-base"
+                  className="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm"
                   placeholder="John Doe"
                 />
               </div>
@@ -111,12 +142,12 @@ const Register = () => {
 
             {/* Email Input */}
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Email Address
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FiMail className="h-5 w-5 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiMail className="h-4 w-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
                 </div>
                 <input
                   id="email"
@@ -125,7 +156,7 @@ const Register = () => {
                   required
                   value={formData.email}
                   onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3 sm:py-3.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm sm:text-base"
+                  className="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm"
                   placeholder="you@example.com"
                 />
               </div>
@@ -133,12 +164,12 @@ const Register = () => {
 
             {/* Password Input */}
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Password
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FiLock className="h-5 w-5 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiLock className="h-4 w-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
                 </div>
                 <input
                   id="password"
@@ -147,7 +178,7 @@ const Register = () => {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3 sm:py-3.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm sm:text-base"
+                  className="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm"
                   placeholder="••••••••"
                 />
               </div>
@@ -155,12 +186,12 @@ const Register = () => {
 
             {/* Confirm Password Input */}
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Confirm Password
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <FiShield className="h-5 w-5 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FiShield className="h-4 w-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -169,7 +200,7 @@ const Register = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-3 sm:py-3.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm sm:text-base"
+                  className="block w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-sm"
                   placeholder="••••••••"
                 />
               </div>
@@ -179,7 +210,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center items-center gap-2 py-3 sm:py-3.5 px-4 border border-transparent text-sm sm:text-base font-semibold rounded-lg text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
@@ -199,7 +230,7 @@ const Register = () => {
           </form>
 
           {/* Divider */}
-          <div className="mt-6 sm:mt-8 mb-6">
+          <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -213,28 +244,15 @@ const Register = () => {
           {/* Login Link */}
           <Link
             to="/login"
-            className="w-full flex justify-center items-center gap-2 py-3 sm:py-3.5 px-4 border-2 border-gray-200 text-sm sm:text-base font-semibold rounded-lg text-slate-700 hover:border-slate-900 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all"
+            className="mt-4 w-full flex justify-center items-center gap-2 py-3 px-4 border-2 border-gray-200 text-sm font-semibold rounded-lg text-slate-700 hover:border-slate-900 hover:bg-slate-50 transition-all"
           >
             Sign in instead
           </Link>
         </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-3 gap-4 px-4">
-          {[
-            { icon: FiCheckCircle, text: 'Free Forever' },
-            { icon: FiCheckCircle, text: 'No Credit Card' },
-            { icon: FiCheckCircle, text: 'Instant Access' },
-          ].map((feature, index) => (
-            <div key={index} className="flex flex-col items-center gap-1.5">
-              <feature.icon className="w-4 h-4 text-slate-900" />
-              <span className="text-xs text-slate-600 font-medium">{feature.text}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default Register;
