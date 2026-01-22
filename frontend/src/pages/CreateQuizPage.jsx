@@ -1,0 +1,396 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { adminQuizAPI } from '../services/api';
+import Header from '../components/Header';
+import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiCheck } from 'react-icons/fi';
+
+const CreateQuizPage = () => {
+  const navigate = useNavigate();
+  const [newQuiz, setNewQuiz] = useState({
+    title: '',
+    description: '',
+    duration: 30,
+    questions: [
+      {
+        questionText: '',
+        questionImage: '',
+        options: ['', '', '', ''],
+        correctOption: 0,
+        explanation: '',
+      },
+    ],
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // Load saved draft from localStorage
+    const savedDraft = localStorage.getItem('quiz_draft');
+    if (savedDraft) {
+      try {
+        const parsedDraft = JSON.parse(savedDraft);
+        setNewQuiz(parsedDraft);
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    }
+  }, []);
+
+  // Auto-save draft to localStorage
+  useEffect(() => {
+    if (newQuiz.title || newQuiz.description || newQuiz.questions[0].questionText) {
+      localStorage.setItem('quiz_draft', JSON.stringify(newQuiz));
+    }
+  }, [newQuiz]);
+
+  const addQuestion = () => {
+    setNewQuiz({
+      ...newQuiz,
+      questions: [
+        ...newQuiz.questions,
+        {
+          questionText: '',
+          questionImage: '',
+          options: ['', '', '', ''],
+          correctOption: 0,
+          explanation: '',
+        },
+      ],
+    });
+  };
+
+  const updateQuestion = (index, field, value) => {
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[index][field] = value;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+  };
+
+  const updateOption = (qIndex, optIndex, value) => {
+    const updatedQuestions = [...newQuiz.questions];
+    updatedQuestions[qIndex].options[optIndex] = value;
+    setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+  };
+
+  const removeQuestion = (index) => {
+    if (newQuiz.questions.length > 1) {
+      const updatedQuestions = newQuiz.questions.filter((_, i) => i !== index);
+      setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+    }
+  };
+
+  const handleImageUpload = async (qIndex, file) => {
+    if (!file) return;
+    
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await adminQuizAPI.uploadQuestionImage(formData);
+      const imageUrl = response.data.imageUrl;
+      
+      const updatedQuestions = [...newQuiz.questions];
+      updatedQuestions[qIndex].questionImage = imageUrl;
+      setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+    } catch (error) {
+      alert('Failed to upload image');
+    }
+  };
+
+  const handleCreateQuiz = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await adminQuizAPI.createQuiz(newQuiz);
+      localStorage.removeItem('quiz_draft');
+      alert('Quiz created successfully!');
+      navigate('/admin/dashboard');
+    } catch (error) {
+      alert('Failed to create quiz: ' + error.response?.data?.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (newQuiz.title || newQuiz.description || newQuiz.questions[0].questionText) {
+      if (confirm('You have unsaved changes. Discard and go back?')) {
+        navigate('/admin/dashboard');
+      }
+    } else {
+      navigate('/admin/dashboard');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <Header />
+      
+      {/* Sticky Top Bar */}
+      <div className="sticky top-16 z-30 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleCancel}
+                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                <FiArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Back</span>
+              </button>
+              <div className="h-6 w-px bg-gray-300"></div>
+              <div>
+                <h1 className="text-xl font-bold text-slate-900">Create New Quiz</h1>
+                <p className="text-xs text-slate-500 mt-0.5">Auto-saving to drafts</p>
+              </div>
+            </div>
+            <button
+              onClick={handleCreateQuiz}
+              disabled={saving}
+              className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Creating...</span>
+                </>
+              ) : (
+                <>
+                  <FiSave className="w-4 h-4" />
+                  <span>Create Quiz</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <form onSubmit={handleCreateQuiz}>
+          {/* Quiz Details Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+              <span className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+              Quiz Information
+            </h2>
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Quiz Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newQuiz.title}
+                  onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-slate-900 placeholder-slate-400"
+                  placeholder="e.g., JavaScript Fundamentals Quiz"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  required
+                  value={newQuiz.description}
+                  onChange={(e) => setNewQuiz({ ...newQuiz, description: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-slate-900 placeholder-slate-400"
+                  rows="3"
+                  placeholder="Brief description of what this quiz covers..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Duration (minutes) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={newQuiz.duration}
+                  onChange={(e) => setNewQuiz({ ...newQuiz, duration: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent transition-all bg-slate-50 hover:bg-white text-slate-900"
+                  min="1"
+                  placeholder="30"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Questions Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+                Questions ({newQuiz.questions.length})
+              </h2>
+            </div>
+
+            <div className="space-y-6">
+              {newQuiz.questions.map((question, qIndex) => (
+                <div key={qIndex} className="border border-gray-200 rounded-lg p-5 bg-slate-50">
+                  <div className="flex justify-between items-start mb-5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center justify-center w-10 h-10 bg-slate-900 text-white rounded-lg text-base font-bold">
+                        {qIndex + 1}
+                      </span>
+                      <div>
+                        <h3 className="font-semibold text-slate-900">Question {qIndex + 1}</h3>
+                        <p className="text-xs text-slate-500">Fill in the question details below</p>
+                      </div>
+                    </div>
+                    {newQuiz.questions.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeQuestion(qIndex)}
+                        className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-all text-sm font-medium"
+                      >
+                        <FiTrash2 className="w-4 h-4" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Question Text <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        required
+                        value={question.questionText}
+                        onChange={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
+                        rows="2"
+                        placeholder="Enter your question here..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Question Image (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(qIndex, e.target.files[0])}
+                        className="block w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 file:transition-all cursor-pointer"
+                      />
+                      {question.questionImage && (
+                        <div className="mt-3 relative inline-block">
+                          <img 
+                            src={question.questionImage} 
+                            alt="Question preview" 
+                            className="max-w-xs rounded-lg shadow-md border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateQuestion(qIndex, 'questionImage', '')}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                          >
+                            <FiTrash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-3">
+                        Answer Options <span className="text-red-500">*</span>
+                      </label>
+                      <div className="space-y-2.5">
+                        {question.options.map((option, optIndex) => (
+                          <div key={optIndex} className="flex items-center gap-3 group">
+                            <input
+                              type="radio"
+                              id={`correct-${qIndex}-${optIndex}`}
+                              name={`correct-${qIndex}`}
+                              checked={question.correctOption === optIndex}
+                              onChange={() => updateQuestion(qIndex, 'correctOption', optIndex)}
+                              className="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                            />
+                            <input
+                              type="text"
+                              required
+                              value={option}
+                              onChange={(e) => updateOption(qIndex, optIndex, e.target.value)}
+                              className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
+                              placeholder={`Option ${optIndex + 1}`}
+                            />
+                            {question.correctOption === optIndex && (
+                              <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg whitespace-nowrap">
+                                <FiCheck className="w-3.5 h-3.5" />
+                                Correct Answer
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">Select the correct answer by clicking the radio button</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Explanation (Optional)
+                      </label>
+                      <textarea
+                        value={question.explanation}
+                        onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
+                        rows="2"
+                        placeholder="Explain why this is the correct answer..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addQuestion}
+                className="w-full py-4 border-2 border-dashed border-gray-300 rounded-lg text-slate-700 hover:border-slate-900 hover:text-slate-900 hover:bg-slate-50 transition-all font-semibold flex items-center justify-center gap-2"
+              >
+                <FiPlus className="w-5 h-5" />
+                Add Another Question
+              </button>
+            </div>
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="flex items-center justify-between gap-4 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <p className="text-sm text-slate-600">
+              {newQuiz.questions.length} {newQuiz.questions.length === 1 ? 'question' : 'questions'} added
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-semibold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiSave className="w-4 h-4" />
+                    <span>Create Quiz</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default CreateQuizPage;
