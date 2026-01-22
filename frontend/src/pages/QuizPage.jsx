@@ -34,12 +34,40 @@ const QuizPage = () => {
 
   // Timer effect
   useEffect(() => {
-    if (timeLeft === null || isPaused) return;
+    if (timeLeft === null || isPaused || submitting) return;
+
+    if (timeLeft === 0) {
+      // Auto-submit when time runs out
+      const autoSubmitQuiz = async () => {
+        if (submitting) return;
+        
+        setSubmitting(true);
+        clearState();
+
+        const submitToast = toast.loading('Time up! Submitting quiz...');
+        try {
+          const formattedAnswers = quiz.questions.map((q) => ({
+            questionId: q._id,
+            selectedOption: answers[q._id] !== undefined ? answers[q._id] : -1,
+          }));
+
+          const response = await userQuizAPI.submitQuiz(quizId, formattedAnswers);
+          toast.success('Quiz submitted successfully!', { id: submitToast });
+          navigate(`/result/${response.data.result._id}`);
+        } catch (error) {
+          toast.error('Failed to submit quiz', { id: submitToast });
+          setSubmitting(false);
+        }
+      };
+      
+      autoSubmitQuiz();
+      return;
+    }
 
     timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          handleSubmit(true);
+          clearInterval(timerRef.current);
           return 0;
         }
         return prev - 1;
@@ -51,7 +79,7 @@ const QuizPage = () => {
         clearInterval(timerRef.current);
       }
     };
-  }, [timeLeft, isPaused]);
+  }, [timeLeft, isPaused, submitting, quiz, answers, quizId, navigate]);
 
   // Prevent accidental tab close/navigation
   useEffect(() => {
