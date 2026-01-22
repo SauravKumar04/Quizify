@@ -37,25 +37,55 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6 sm:space-y-8">
-        {/* Logo & Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-slate-900 rounded-lg flex items-center justify-center shadow-sm">
-              <BsLightningFill className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="max-w-6xl w-full bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="grid lg:grid-cols-2 gap-0">
+          {/* Branding Side */}
+          <div className="hidden lg:flex bg-slate-900 p-12 flex-col justify-center items-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900"></div>
+            <div className="relative z-10 text-center">
+              <div className="flex justify-center mb-8">
+                <div className="relative group">
+                  <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-xl">
+                    <BsLightningFill className="w-12 h-12 text-slate-900" />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-slate-900"></div>
+                </div>
+              </div>
+              <h1 className="text-5xl font-bold mb-4 tracking-tight">
+                Quizify
+              </h1>
+              <div className="flex items-center justify-center gap-3 mb-8">
+                <div className="h-px w-12 bg-slate-600"></div>
+                <p className="text-sm font-medium text-slate-300 uppercase tracking-wider">Test Your Knowledge</p>
+                <div className="h-px w-12 bg-slate-600"></div>
+              </div>
+              <p className="text-slate-300 text-lg max-w-sm mx-auto">
+                Join thousands of learners testing their knowledge with interactive quizzes
+              </p>
             </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
-            Welcome Back
-          </h2>
-          <p className="mt-3 text-slate-600 text-base sm:text-lg">
-            Sign in to continue your learning journey
-          </p>
-        </div>
 
-        {/* Login Card */}
-        <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8 border border-gray-200">
+          {/* Form Side */}
+          <div className="p-8 sm:p-12 lg:p-16">
+            {/* Mobile Logo */}
+            <div className="lg:hidden text-center mb-8">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg">
+                  <BsLightningFill className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h1 className="text-3xl font-bold text-slate-900">Quizify</h1>
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                Welcome Back
+              </h2>
+              <p className="text-slate-600">
+                Sign in to continue your learning journey
+              </p>
+            </div>
           <form className="space-y-5 sm:space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3">
@@ -138,7 +168,7 @@ const Login = () => {
           </form>
 
           {/* Divider */}
-          <div className="mt-8 mb-6">
+          <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -152,27 +182,14 @@ const Login = () => {
           {/* Register Link */}
           <Link
             to="/register"
-            className="w-full flex justify-center items-center gap-2 py-3 sm:py-3.5 px-4 border-2 border-gray-200 text-sm sm:text-base font-semibold rounded-lg text-slate-700 hover:border-slate-900 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-all"
+            className="mt-4 w-full flex justify-center items-center gap-2 py-3 px-4 border-2 border-gray-200 text-sm font-semibold rounded-lg text-slate-700 hover:border-slate-900 hover:bg-slate-50 transition-all"
           >
             Create an account
           </Link>
         </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-3 gap-4 px-4">
-          {[
-            { icon: FiCheckCircle, text: 'Secure' },
-            { icon: FiCheckCircle, text: 'Fast' },
-            { icon: FiCheckCircle, text: 'Reliable' },
-          ].map((feature, index) => (
-            <div key={index} className="flex flex-col items-center gap-1.5">
-              <feature.icon className="w-4 h-4 text-slate-900" />
-              <span className="text-xs text-slate-600 font-medium">{feature.text}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
+  </div>
   );
 };
 
