@@ -19,6 +19,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://quizify-puce-gamma.vercel.app',
+  'https://quizify-brainstorm.vercel.app',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
