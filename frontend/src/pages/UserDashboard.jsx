@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { userQuizAPI } from '../services/api';
+import toast from 'react-hot-toast';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import QuizCard from '../components/QuizCard';
@@ -73,8 +74,9 @@ const UserDashboard = () => {
       try {
         await userQuizAPI.deleteResult(resultId);
         setHistory(history.filter(result => result._id !== resultId));
+        toast.success('Result deleted successfully');
       } catch (error) {
-        alert('Failed to delete result');
+        toast.error('Failed to delete result');
       }
     }
   };

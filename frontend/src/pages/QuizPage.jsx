@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { userQuizAPI } from '../services/api';
+import toast from 'react-hot-toast';
 import { FiClock, FiCheckCircle, FiArrowRight, FiArrowLeft, FiFlag } from 'react-icons/fi';
 
 const QuizPage = () => {
@@ -91,8 +92,7 @@ const QuizPage = () => {
           setTimeLeft(state.timeLeft);
           setCurrentQuestion(state.currentQuestion || 0);
           setFlagged(new Set(state.flagged || []));
-          setShowResumeNotice(true);
-          setTimeout(() => setShowResumeNotice(false), 5000);
+          toast.success('Quiz progress restored', { duration: 3000 });
           return true;
         }
       } catch (error) {
@@ -117,7 +117,7 @@ const QuizPage = () => {
         setTimeLeft(response.data.quiz.duration * 60);
       }
     } catch (error) {
-      alert('Failed to load quiz');
+      toast.error('Failed to load quiz');
       navigate('/user/dashboard');
     } finally {
       setLoading(false);
@@ -127,6 +127,7 @@ const QuizPage = () => {
   const handleQuit = () => {
     saveState();
     clearInterval(timerRef.current);
+    toast.success('Progress saved');
     navigate('/user/dashboard');
   };
 
@@ -156,6 +157,7 @@ const QuizPage = () => {
     setSubmitting(true);
     clearState(); // Clear saved state when submitting
 
+    const submitToast = toast.loading('Submitting quiz...');
     try {
       const formattedAnswers = quiz.questions.map((q) => ({
         questionId: q._id,
@@ -163,9 +165,10 @@ const QuizPage = () => {
       }));
 
       const response = await userQuizAPI.submitQuiz(quizId, formattedAnswers);
+      toast.success('Quiz submitted successfully!', { id: submitToast });
       navigate(`/result/${response.data.result._id}`);
     } catch (error) {
-      alert('Failed to submit quiz');
+      toast.error('Failed to submit quiz', { id: submitToast });
       setSubmitting(false);
     }
   };

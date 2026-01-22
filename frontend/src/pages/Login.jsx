@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import { FiMail, FiLock, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
 
@@ -21,6 +22,7 @@ const Login = () => {
     const result = await login(email, password);
 
     if (result.success) {
+      toast.success('Welcome back!');
       if (result.user.role === 'admin') {
         navigate('/admin/dashboard');
       } else {
@@ -28,6 +30,7 @@ const Login = () => {
       }
     } else {
       setError(result.message);
+      toast.error(result.message || 'Login failed');
     }
 
     setLoading(false);

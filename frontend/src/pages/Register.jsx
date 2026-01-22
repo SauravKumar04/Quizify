@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 import { FiMail, FiLock, FiUser, FiArrowRight, FiCheckCircle, FiShield } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
 
@@ -22,12 +23,16 @@ const Register = () => {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      const errorMsg = 'Passwords do not match';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      const errorMsg = 'Password must be at least 6 characters';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -36,9 +41,11 @@ const Register = () => {
     const result = await register(formData.name, formData.email, formData.password);
 
     if (result.success) {
+      toast.success('Account created successfully! Welcome!');
       navigate('/user/dashboard');
     } else {
       setError(result.message);
+      toast.error(result.message || 'Registration failed');
     }
 
     setLoading(false);

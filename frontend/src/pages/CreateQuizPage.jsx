@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { adminQuizAPI } from '../services/api';
+import toast from 'react-hot-toast';
 import Header from '../components/Header';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiCheck } from 'react-icons/fi';
 
@@ -29,6 +30,7 @@ const CreateQuizPage = () => {
       try {
         const parsedDraft = JSON.parse(savedDraft);
         setNewQuiz(parsedDraft);
+        toast.success('Draft restored', { duration: 2000 });
       } catch (error) {
         console.error('Failed to load draft:', error);
       }
@@ -80,6 +82,7 @@ const CreateQuizPage = () => {
   const handleImageUpload = async (qIndex, file) => {
     if (!file) return;
     
+    const uploadToast = toast.loading('Uploading image...');
     try {
       const formData = new FormData();
       formData.append('image', file);
@@ -90,8 +93,9 @@ const CreateQuizPage = () => {
       const updatedQuestions = [...newQuiz.questions];
       updatedQuestions[qIndex].questionImage = imageUrl;
       setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+      toast.success('Image uploaded successfully', { id: uploadToast });
     } catch (error) {
-      alert('Failed to upload image');
+      toast.error('Failed to upload image', { id: uploadToast });
     }
   };
 
@@ -101,10 +105,10 @@ const CreateQuizPage = () => {
     try {
       await adminQuizAPI.createQuiz(newQuiz);
       localStorage.removeItem('quiz_draft');
-      alert('Quiz created successfully!');
+      toast.success('Quiz created successfully!');
       navigate('/admin/dashboard');
     } catch (error) {
-      alert('Failed to create quiz: ' + error.response?.data?.message);
+      toast.error('Failed to create quiz: ' + (error.response?.data?.message || 'Unknown error'));
     } finally {
       setSaving(false);
     }

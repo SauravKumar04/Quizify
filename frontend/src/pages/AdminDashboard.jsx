@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminQuizAPI } from '../services/api';
+import toast from 'react-hot-toast';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import QuizCard from '../components/QuizCard';
@@ -33,9 +34,10 @@ const AdminDashboard = () => {
     if (confirm('Are you sure you want to delete this quiz?')) {
       try {
         await adminQuizAPI.deleteQuiz(quizId);
+        toast.success('Quiz deleted successfully');
         fetchQuizzes();
       } catch (error) {
-        alert('Failed to delete quiz');
+        toast.error('Failed to delete quiz');
       }
     }
   };

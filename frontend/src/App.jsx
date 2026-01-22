@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminDashboard from './pages/AdminDashboard';
@@ -35,6 +36,54 @@ const App = () => {
   return (
     <Router>
       <AuthProvider>
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: '#ffffff',
+              color: '#0f172a',
+              fontWeight: '600',
+              border: '1.5px solid #000000',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#ffffff',
+              },
+              style: {
+                background: '#ffffff',
+                color: '#0f172a',
+                border: '1.5px solid #000000',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#ffffff',
+              },
+              style: {
+                background: '#ffffff',
+                color: '#0f172a',
+                border: '1.5px solid #000000',
+              },
+            },
+            loading: {
+              iconTheme: {
+                primary: '#0f172a',
+                secondary: '#ffffff',
+              },
+              style: {
+                background: '#ffffff',
+                color: '#0f172a',
+                border: '1.5px solid #000000',
+              },
+            },
+          }}
+        />
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
