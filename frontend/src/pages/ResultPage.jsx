@@ -171,7 +171,7 @@ const ResultPage = () => {
                     <FiTarget className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600" />
                     <p className="text-lg sm:text-xl font-bold text-indigo-600">{result.avgTimePerQuestion || 0}s</p>
                   </div>
-                  <p className="text-[10px] sm:text-xs text-indigo-700 font-medium">Avg per Question</p>
+                  <p className="text-[10px] sm:text-xs text-indigo-700 font-medium">Expected/Question</p>
                 </div>
               </div>
             )}
@@ -356,9 +356,9 @@ const ResultPage = () => {
                             }`}>
                               <FiClock className={`w-4 h-4 ${isSlowAnswer ? 'text-amber-600' : 'text-slate-500'}`} />
                               <span className={`text-xs font-medium ${isSlowAnswer ? 'text-amber-700' : 'text-slate-600'}`}>
-                                Time spent: {timeSpent}s
-                                {isSlowAnswer && <span className="ml-2 text-amber-600">(Above average)</span>}
-                                {!isSlowAnswer && avgTime > 0 && <span className="ml-2 text-slate-400">(Avg: {avgTime}s)</span>}
+                                Time spent: {timeSpent}s | Expected: {avgTime}s
+                                {isSlowAnswer && <span className="ml-2 text-amber-600">(Slower than expected)</span>}
+                                {!isSlowAnswer && timeSpent < avgTime && <span className="ml-2 text-emerald-600">(Faster than expected)</span>}
                               </span>
                             </div>
                           )}
