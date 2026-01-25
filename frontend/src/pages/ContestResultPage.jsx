@@ -31,9 +31,10 @@ const ContestResultPage = () => {
   };
 
   const formatTime = (seconds) => {
+    if (seconds < 60) return `${seconds}s`;
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
+    return secs > 0 ? `${mins}min ${secs}s` : `${mins}min`;
   };
 
   if (loading) {
@@ -120,7 +121,7 @@ const ContestResultPage = () => {
                   </div>
                   <div className="bg-purple-50 rounded-xl p-3 sm:p-4 border border-purple-200">
                     <FiTarget className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 mx-auto mb-2" />
-                    <div className="text-xl sm:text-2xl font-bold text-purple-600">{result.avgTimePerQuestion || 0}s</div>
+                    <div className="text-xl sm:text-2xl font-bold text-purple-600">{formatTime(result.avgTimePerQuestion || 0)}</div>
                     <div className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">Expected/Question</div>
                   </div>
                   <div className="bg-amber-50 rounded-xl p-3 sm:p-4 border border-amber-200">
@@ -158,7 +159,7 @@ const ContestResultPage = () => {
                 {result.avgTimePerQuestion > 0 && (
                   <span className="ml-auto text-xs text-slate-500 flex items-center gap-1">
                     <FiTarget className="w-3 h-3" />
-                    Expected: {result.avgTimePerQuestion}s/question
+                    Expected: {formatTime(result.avgTimePerQuestion)}/question
                   </span>
                 )}
               </div>
@@ -266,7 +267,7 @@ const ContestResultPage = () => {
                       <div className="flex items-center gap-2">
                         <FiClock className={`w-4 h-4 ${isSlowAnswer ? 'text-amber-600' : 'text-slate-500'}`} />
                         <span className={`text-xs sm:text-sm font-medium ${isSlowAnswer ? 'text-amber-700' : 'text-slate-600'}`}>
-                          Time spent: {timeSpent}s | Expected: {avgTime}s
+                          Time spent: {formatTime(timeSpent)} | Expected: {formatTime(avgTime)}
                           {isSlowAnswer && <span className="ml-2 text-amber-600">(Slower than expected)</span>}
                           {!isSlowAnswer && timeSpent < avgTime && <span className="ml-2 text-emerald-600">(Faster than expected)</span>}
                         </span>

@@ -29,6 +29,13 @@ const ResultPage = () => {
     }
   };
 
+  const formatTime = (seconds) => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}min ${secs}s` : `${mins}min`;
+  };
+
   const toggleQuestion = (index) => {
     const newExpanded = new Set(expandedQuestions);
     if (newExpanded.has(index)) {
@@ -169,7 +176,7 @@ const ResultPage = () => {
                 <div className="text-center p-2 sm:p-3 bg-indigo-50 rounded-lg border border-indigo-100">
                   <div className="flex items-center justify-center gap-1 mb-0.5">
                     <FiTarget className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600" />
-                    <p className="text-lg sm:text-xl font-bold text-indigo-600">{result.avgTimePerQuestion || 0}s</p>
+                    <p className="text-lg sm:text-xl font-bold text-indigo-600">{formatTime(result.avgTimePerQuestion || 0)}</p>
                   </div>
                   <p className="text-[10px] sm:text-xs text-indigo-700 font-medium">Expected/Question</p>
                 </div>
@@ -356,7 +363,7 @@ const ResultPage = () => {
                             }`}>
                               <FiClock className={`w-4 h-4 ${isSlowAnswer ? 'text-amber-600' : 'text-slate-500'}`} />
                               <span className={`text-xs font-medium ${isSlowAnswer ? 'text-amber-700' : 'text-slate-600'}`}>
-                                Time spent: {timeSpent}s | Expected: {avgTime}s
+                                Time spent: {formatTime(timeSpent)} | Expected: {formatTime(avgTime)}
                                 {isSlowAnswer && <span className="ml-2 text-amber-600">(Slower than expected)</span>}
                                 {!isSlowAnswer && timeSpent < avgTime && <span className="ml-2 text-emerald-600">(Faster than expected)</span>}
                               </span>
