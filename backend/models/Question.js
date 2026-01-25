@@ -28,6 +28,10 @@ const questionSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  explanationImage: {
+    type: String,
+    default: '',
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Question', questionSchema);

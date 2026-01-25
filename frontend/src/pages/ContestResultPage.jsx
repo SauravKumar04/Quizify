@@ -262,6 +262,23 @@ const ContestResultPage = () => {
                   {answer.selectedOption === null && (
                     <p className="text-sm text-slate-500 italic">Not answered</p>
                   )}
+
+                  {/* Explanation */}
+                  {answer.explanation && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs font-semibold text-blue-700 uppercase mb-1">Explanation</p>
+                      <p className="text-sm text-blue-800 leading-relaxed">{answer.explanation}</p>
+                      {answer.explanationImage && (
+                        <div className="mt-3">
+                          <img 
+                            src={answer.explanationImage} 
+                            alt="Explanation" 
+                            className="max-w-full h-auto rounded-lg border border-blue-200 max-h-64 object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )})}
             </div>

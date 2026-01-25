@@ -18,6 +18,7 @@ const CreateQuizPage = () => {
         options: ['', '', '', ''],
         correctOption: 0,
         explanation: '',
+        explanationImage: '',
       },
     ],
   });
@@ -55,6 +56,7 @@ const CreateQuizPage = () => {
           options: ['', '', '', ''],
           correctOption: 0,
           explanation: '',
+          explanationImage: '',
         },
       ],
     });
@@ -92,6 +94,26 @@ const CreateQuizPage = () => {
       
       const updatedQuestions = [...newQuiz.questions];
       updatedQuestions[qIndex].questionImage = imageUrl;
+      setNewQuiz({ ...newQuiz, questions: updatedQuestions });
+      toast.success('Image uploaded successfully', { id: uploadToast });
+    } catch (error) {
+      toast.error('Failed to upload image', { id: uploadToast });
+    }
+  };
+
+  const handleExplanationImageUpload = async (qIndex, file) => {
+    if (!file) return;
+    
+    const uploadToast = toast.loading('Uploading explanation image...');
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await adminQuizAPI.uploadQuestionImage(formData);
+      const imageUrl = response.data.imageUrl;
+      
+      const updatedQuestions = [...newQuiz.questions];
+      updatedQuestions[qIndex].explanationImage = imageUrl;
       setNewQuiz({ ...newQuiz, questions: updatedQuestions });
       toast.success('Image uploaded successfully', { id: uploadToast });
     } catch (error) {
@@ -344,6 +366,34 @@ const CreateQuizPage = () => {
                         rows="2"
                         placeholder="Explain why this is the correct answer..."
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Explanation Image (Optional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleExplanationImageUpload(qIndex, e.target.files[0])}
+                        className="block w-full text-sm text-slate-600 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 file:transition-all cursor-pointer"
+                      />
+                      {question.explanationImage && (
+                        <div className="mt-3 relative inline-block">
+                          <img 
+                            src={question.explanationImage} 
+                            alt="Explanation preview" 
+                            className="max-w-xs rounded-lg shadow-md border border-gray-200"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateQuestion(qIndex, 'explanationImage', '')}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                          >
+                            <FiTrash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

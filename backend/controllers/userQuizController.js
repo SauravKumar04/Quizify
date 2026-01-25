@@ -134,6 +134,7 @@ exports.getResultDetails = async (req, res) => {
           correctOption: question.correctOption,
           isCorrect: answer.isCorrect,
           explanation: question.explanation,
+          explanationImage: question.explanationImage || '',
           timeSpent: answer.timeSpent || 0,
         };
       })

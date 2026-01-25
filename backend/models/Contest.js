@@ -24,6 +24,10 @@ const contestQuestionSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  explanationImage: {
+    type: String,
+    default: '',
+  },
 });
 
 const contestSchema = new mongoose.Schema({

@@ -24,6 +24,7 @@ const CreateContestPage = () => {
       options: ['', '', '', ''],
       correctOption: 0,
       explanation: '',
+      explanationImage: '',
     },
   ]);
 
@@ -70,6 +71,7 @@ const CreateContestPage = () => {
             options,
             correctOption: q.correctOption,
             explanation: q.explanation || '',
+            explanationImage: q.explanationImage || '',
           };
         }));
       }
@@ -141,6 +143,40 @@ const CreateContestPage = () => {
     handleQuestionChange(questionIndex, 'questionImage', '');
   };
 
+  const handleExplanationImageUpload = async (questionIndex, file) => {
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingImage(`explanation-${questionIndex}`);
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await adminContestAPI.uploadQuestionImage(formData);
+      
+      handleQuestionChange(questionIndex, 'explanationImage', response.data.imageUrl);
+      toast.success('Explanation image uploaded successfully');
+    } catch (error) {
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(null);
+    }
+  };
+
+  const removeExplanationImage = (questionIndex) => {
+    handleQuestionChange(questionIndex, 'explanationImage', '');
+  };
+
   const addQuestion = () => {
     setQuestions(prev => [
       ...prev,
@@ -150,6 +186,7 @@ const CreateContestPage = () => {
         options: ['', '', '', ''],
         correctOption: 0,
         explanation: '',
+        explanationImage: '',
       },
     ]);
   };
@@ -222,6 +259,7 @@ const CreateContestPage = () => {
           options: q.options.filter(opt => opt.trim()),
           correctOption: q.correctOption,
           explanation: q.explanation || undefined,
+          explanationImage: q.explanationImage || undefined,
         })),
       };
 
@@ -475,6 +513,55 @@ const CreateContestPage = () => {
                     className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="Explain the correct answer"
                   />
+                </div>
+
+                {/* Explanation Image */}
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Explanation Image (Optional)
+                  </label>
+                  {question.explanationImage ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={question.explanationImage}
+                        alt="Explanation preview"
+                        className="max-w-xs h-auto rounded-lg border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeExplanationImage(qIndex)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <FaTimes className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleExplanationImageUpload(qIndex, e.target.files[0])}
+                        className="hidden"
+                        id={`explanation-image-${qIndex}`}
+                      />
+                      <label
+                        htmlFor={`explanation-image-${qIndex}`}
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-xs sm:text-sm"
+                      >
+                        {uploadingImage === `explanation-${qIndex}` ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-indigo-500"></div>
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FaImage className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500" />
+                            <span>Add Explanation Image</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

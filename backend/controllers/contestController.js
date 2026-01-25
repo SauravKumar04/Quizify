@@ -480,6 +480,8 @@ exports.getContestResultDetails = async (req, res) => {
         correctOption: question.correctOption,
         selectedOption: userAnswer ? userAnswer.selectedOption : null,
         isCorrect: userAnswer ? userAnswer.isCorrect : false,
+        explanation: question.explanation || '',
+        explanationImage: question.explanationImage || '',
         timeSpent: userAnswer ? userAnswer.timeSpent || 0 : 0,
       };
     });

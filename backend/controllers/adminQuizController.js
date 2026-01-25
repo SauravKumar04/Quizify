@@ -25,6 +25,7 @@ exports.createQuiz = async (req, res) => {
         options: q.options,
         correctOption: q.correctOption,
         explanation: q.explanation || '',
+        explanationImage: q.explanationImage || '',
       }))
     );
 
