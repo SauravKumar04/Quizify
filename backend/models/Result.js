@@ -18,13 +18,21 @@ const resultSchema = new mongoose.Schema({
     },
     selectedOption: {
       type: Number,
-      min: 0,
+      min: -1,  // -1 indicates unattempted
       max: 3,
     },
     isCorrect: {
       type: Boolean,
     },
+    timeSpent: {
+      type: Number, // in seconds
+      default: 0,
+    },
   }],
+  totalTimeTaken: {
+    type: Number, // in seconds
+    default: 0,
+  },
   score: {
     type: Number,
     required: true,

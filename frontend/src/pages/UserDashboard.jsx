@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { userQuizAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import QuizCard from '../components/QuizCard';
-import { HiSparkles } from 'react-icons/hi';
+import LoadingAnimation from '../components/LoadingAnimation';
 import { FiClock, FiCheckCircle, FiTrendingUp, FiAward, FiTrash2 } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
 
@@ -91,18 +91,27 @@ const UserDashboard = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <Header />
       <div className="flex">
         <Sidebar />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
           <div className="max-w-7xl mx-auto">
             {/* Welcome Section */}
-            <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-                Welcome back, {user?.name}
-              </h1>
-              <p className="text-slate-600 mt-1">Ready to test your knowledge today?</p>
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                  Welcome back, {user?.name}
+                </h1>
+                <p className="text-slate-600 mt-1">Ready to test your knowledge today?</p>
+              </div>
+              <Link
+                to="/contests"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium text-sm"
+              >
+                <FiAward className="w-4 h-4" />
+                View Contests
+              </Link>
             </div>
 
             {/* Stats Cards */}
@@ -173,9 +182,8 @@ const UserDashboard = () => {
             </div>
 
             {loading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-slate-900"></div>
-                <p className="mt-4 text-slate-600 font-medium">Loading...</p>
+              <div className="flex justify-center py-16">
+                <LoadingAnimation message="Loading quizzes" />
               </div>
             ) : (
               <>

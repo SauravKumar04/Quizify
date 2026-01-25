@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { userQuizAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import LoadingAnimation from '../components/LoadingAnimation';
 import { FiClock, FiCheckCircle, FiArrowRight, FiArrowLeft, FiFlag } from 'react-icons/fi';
 
 const QuizPage = () => {
@@ -18,7 +19,10 @@ const QuizPage = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [showQuitModal, setShowQuitModal] = useState(false);
   const [showResumeNotice, setShowResumeNotice] = useState(false);
+  const [questionTimeSpent, setQuestionTimeSpent] = useState({}); // Track time spent on each question
   const timerRef = useRef(null);
+  const questionTimerRef = useRef(null);
+  const questionStartTimeRef = useRef(Date.now());
 
   // Load saved state on mount
   useEffect(() => {
@@ -30,7 +34,29 @@ const QuizPage = () => {
     if (quiz && !submitting) {
       saveState();
     }
-  }, [answers, timeLeft, currentQuestion, flagged, quiz]);
+  }, [answers, timeLeft, currentQuestion, flagged, quiz, questionTimeSpent]);
+
+  // Track time for current question
+  useEffect(() => {
+    if (!quiz || submitting || isPaused) return;
+    
+    // Reset the start time when question changes
+    questionStartTimeRef.current = Date.now();
+    
+    return () => {
+      // Save time spent on this question when leaving
+      if (quiz && !submitting) {
+        const timeOnQuestion = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+        const questionId = quiz.questions[currentQuestion]?._id;
+        if (questionId && timeOnQuestion > 0) {
+          setQuestionTimeSpent(prev => ({
+            ...prev,
+            [questionId]: (prev[questionId] || 0) + timeOnQuestion
+          }));
+        }
+      }
+    };
+  }, [currentQuestion, quiz, submitting, isPaused]);
 
   // Timer effect
   useEffect(() => {
@@ -44,14 +70,24 @@ const QuizPage = () => {
         setSubmitting(true);
         clearState();
 
+        // Calculate final time spent including current question
+        const timeOnCurrentQ = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+        const currentQId = quiz.questions[currentQuestion]?._id;
+        const finalTimeSpent = { ...questionTimeSpent };
+        if (currentQId) {
+          finalTimeSpent[currentQId] = (finalTimeSpent[currentQId] || 0) + timeOnCurrentQ;
+        }
+        const totalTimeTaken = quiz.duration * 60; // Full duration since time ran out
+
         const submitToast = toast.loading('Time up! Submitting quiz...');
         try {
           const formattedAnswers = quiz.questions.map((q) => ({
             questionId: q._id,
             selectedOption: answers[q._id] !== undefined ? answers[q._id] : -1,
+            timeSpent: finalTimeSpent[q._id] || 0,
           }));
 
-          const response = await userQuizAPI.submitQuiz(quizId, formattedAnswers);
+          const response = await userQuizAPI.submitQuiz(quizId, formattedAnswers, totalTimeTaken);
           toast.success('Quiz submitted successfully!', { id: submitToast });
           navigate(`/result/${response.data.result._id}`);
         } catch (error) {
@@ -98,11 +134,20 @@ const QuizPage = () => {
   const saveState = () => {
     if (!quiz) return;
     
+    // Save current question's time before saving state
+    const timeOnQuestion = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+    const currentQuestionId = quiz.questions[currentQuestion]?._id;
+    const updatedTimeSpent = { ...questionTimeSpent };
+    if (currentQuestionId && timeOnQuestion > 0) {
+      updatedTimeSpent[currentQuestionId] = (updatedTimeSpent[currentQuestionId] || 0) + timeOnQuestion;
+    }
+    
     const state = {
       answers,
       timeLeft,
       currentQuestion,
       flagged: Array.from(flagged),
+      questionTimeSpent: updatedTimeSpent,
       timestamp: Date.now()
     };
     
@@ -120,6 +165,7 @@ const QuizPage = () => {
           setTimeLeft(state.timeLeft);
           setCurrentQuestion(state.currentQuestion || 0);
           setFlagged(new Set(state.flagged || []));
+          setQuestionTimeSpent(state.questionTimeSpent || {});
           toast.success('Quiz progress restored', { duration: 3000 });
           return true;
         }
@@ -160,7 +206,14 @@ const QuizPage = () => {
   };
 
   const handleAnswerSelect = (questionId, optionIndex) => {
-    setAnswers({ ...answers, [questionId]: optionIndex });
+    // Toggle off if already selected, otherwise select
+    if (answers[questionId] === optionIndex) {
+      const newAnswers = { ...answers };
+      delete newAnswers[questionId];
+      setAnswers(newAnswers);
+    } else {
+      setAnswers({ ...answers, [questionId]: optionIndex });
+    }
   };
 
   const toggleFlag = (questionIndex) => {
@@ -173,26 +226,39 @@ const QuizPage = () => {
     setFlagged(newFlagged);
   };
 
-  const handleSubmit = async (autoSubmit = false) => {
+  const handleSubmit = async (forceSubmit = false) => {
     if (submitting) return;
 
     const answeredCount = Object.keys(answers).length;
-    if (!autoSubmit && answeredCount < quiz.questions.length) {
+    // Show confirmation modal only if not forcing submit and there are unanswered questions
+    if (!forceSubmit && answeredCount < quiz.questions.length) {
       setShowSubmitModal(true);
       return;
     }
 
+    // Close modal if open
+    setShowSubmitModal(false);
     setSubmitting(true);
     clearState(); // Clear saved state when submitting
+
+    // Calculate final time spent including current question
+    const timeOnCurrentQ = Math.round((Date.now() - questionStartTimeRef.current) / 1000);
+    const currentQId = quiz.questions[currentQuestion]?._id;
+    const finalTimeSpent = { ...questionTimeSpent };
+    if (currentQId) {
+      finalTimeSpent[currentQId] = (finalTimeSpent[currentQId] || 0) + timeOnCurrentQ;
+    }
+    const totalTimeTaken = (quiz.duration * 60) - timeLeft;
 
     const submitToast = toast.loading('Submitting quiz...');
     try {
       const formattedAnswers = quiz.questions.map((q) => ({
         questionId: q._id,
         selectedOption: answers[q._id] !== undefined ? answers[q._id] : -1,
+        timeSpent: finalTimeSpent[q._id] || 0,
       }));
 
-      const response = await userQuizAPI.submitQuiz(quizId, formattedAnswers);
+      const response = await userQuizAPI.submitQuiz(quizId, formattedAnswers, totalTimeTaken);
       toast.success('Quiz submitted successfully!', { id: submitToast });
       navigate(`/result/${response.data.result._id}`);
     } catch (error) {
@@ -214,10 +280,7 @@ const QuizPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-slate-900 mx-auto"></div>
-          <p className="mt-4 text-base text-slate-700 font-medium">Loading Quiz...</p>
-        </div>
+        <LoadingAnimation message="Loading quiz" />
       </div>
     );
   }
@@ -283,7 +346,7 @@ const QuizPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-450 mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           {/* LEFT - Question */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -315,7 +378,7 @@ const QuizPage = () => {
                   <img
                     src={currentQ.questionImage}
                     alt="Question"
-                    className="w-full max-h-[300px] sm:max-h-[400px] object-contain rounded-lg border border-gray-200"
+                    className="w-full max-h-75 sm:max-h-100 object-contain rounded-lg border border-gray-200"
                   />
                 </div>
               )}
@@ -441,7 +504,7 @@ const QuizPage = () => {
                 Cancel
               </button>
               <button
-                onClick={() => handleSubmit(false)}
+                onClick={() => handleSubmit(true)}
                 disabled={submitting}
                 className="flex-1 px-4 py-2.5 rounded-lg font-semibold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition-all"
               >

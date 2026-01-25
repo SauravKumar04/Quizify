@@ -47,7 +47,7 @@ exports.getQuizForAttempt = async (req, res) => {
 exports.submitQuiz = async (req, res) => {
   try {
     const { quizId } = req.params;
-    const { answers } = req.body; // answers: [{ questionId, selectedOption }]
+    const { answers, totalTimeTaken } = req.body; // answers: [{ questionId, selectedOption, timeSpent }]
 
     const quiz = await Quiz.findById(quizId).populate('questions');
     if (!quiz) {
@@ -69,6 +69,7 @@ exports.submitQuiz = async (req, res) => {
         questionId: answer.questionId,
         selectedOption: answer.selectedOption,
         isCorrect,
+        timeSpent: answer.timeSpent || 0,
       });
     }
 
@@ -83,6 +84,7 @@ exports.submitQuiz = async (req, res) => {
       score,
       totalQuestions,
       percentage: percentage.toFixed(2),
+      totalTimeTaken: totalTimeTaken || 0,
     });
 
     // Populate result with full details
@@ -126,19 +128,26 @@ exports.getResultDetails = async (req, res) => {
         const question = await Question.findById(answer.questionId);
         return {
           questionText: question.questionText,
+          questionImage: question.questionImage || '',
           options: question.options,
           selectedOption: answer.selectedOption,
           correctOption: question.correctOption,
           isCorrect: answer.isCorrect,
           explanation: question.explanation,
+          timeSpent: answer.timeSpent || 0,
         };
       })
     );
+
+    // Calculate average time per question
+    const totalTimeSpent = detailedAnswers.reduce((sum, a) => sum + (a.timeSpent || 0), 0);
+    const avgTimePerQuestion = result.totalQuestions > 0 ? Math.round(totalTimeSpent / result.totalQuestions) : 0;
 
     res.status(200).json({
       result: {
         ...result.toObject(),
         detailedAnswers,
+        avgTimePerQuestion,
       },
     });
   } catch (error) {

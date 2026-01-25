@@ -44,6 +44,8 @@ exports.createQuiz = async (req, res) => {
 // Get all manual quizzes created by admin
 exports.getAdminQuizzes = async (req, res) => {
   try {
+    const Result = require('../models/Result');
+    
     const quizzes = await Quiz.find({
       createdBy: req.userId,
       quizType: 'manual',
@@ -51,7 +53,18 @@ exports.getAdminQuizzes = async (req, res) => {
       .populate('questions')
       .sort({ createdAt: -1 });
 
-    res.status(200).json({ quizzes });
+    // Add attempt count for each quiz
+    const quizzesWithStats = await Promise.all(
+      quizzes.map(async (quiz) => {
+        const attemptCount = await Result.countDocuments({ quiz: quiz._id });
+        return {
+          ...quiz.toObject(),
+          attemptCount,
+        };
+      })
+    );
+
+    res.status(200).json({ quizzes: quizzesWithStats });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch quizzes', error: error.message });
   }

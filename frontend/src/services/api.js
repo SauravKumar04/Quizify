@@ -42,6 +42,11 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getProfile: () => api.get('/auth/profile'),
+  updateProfile: (data) => api.put('/auth/profile', data),
+  uploadProfilePicture: (formData) => api.post('/auth/profile/upload-picture', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  getUserStats: () => api.get('/auth/stats'),
 };
 
 // Admin Quiz APIs
@@ -60,10 +65,33 @@ export const adminQuizAPI = {
 export const userQuizAPI = {
   getAllQuizzes: () => api.get('/user/quiz/all'),
   getQuizForAttempt: (quizId) => api.get(`/user/quiz/${quizId}/attempt`),
-  submitQuiz: (quizId, answers) => api.post(`/user/quiz/${quizId}/submit`, { answers }),
+  submitQuiz: (quizId, answers, totalTimeTaken) => api.post(`/user/quiz/${quizId}/submit`, { answers, totalTimeTaken }),
   getResultDetails: (resultId) => api.get(`/user/quiz/result/${resultId}`),
   getQuizHistory: () => api.get('/user/quiz/history'),
   deleteResult: (resultId) => api.delete(`/user/quiz/result/${resultId}`),
+};
+
+// Contest APIs (Admin)
+export const adminContestAPI = {
+  createContest: (data) => api.post('/contest/admin/create', data),
+  uploadQuestionImage: (formData) => api.post('/contest/admin/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  getMyContests: () => api.get('/contest/admin/my-contests'),
+  getContestById: (contestId) => api.get(`/contest/admin/${contestId}`),
+  updateContest: (contestId, data) => api.put(`/contest/admin/${contestId}`, data),
+  deleteContest: (contestId) => api.delete(`/contest/admin/${contestId}`),
+  getLeaderboard: (contestId) => api.get(`/contest/admin/${contestId}/leaderboard`),
+};
+
+// Contest APIs (User)
+export const contestAPI = {
+  getAllContests: () => api.get('/contest/all'),
+  getContestForAttempt: (contestId) => api.get(`/contest/${contestId}/attempt`),
+  submitContest: (contestId, data) => api.post(`/contest/${contestId}/submit`, data),
+  getLeaderboard: (contestId) => api.get(`/contest/${contestId}/leaderboard`),
+  getMyHistory: () => api.get('/contest/history'),
+  getResultDetails: (resultId) => api.get(`/contest/result/${resultId}`),
 };
 
 export default api;

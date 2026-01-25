@@ -1,0 +1,43 @@
+import React from 'react';
+
+const LoadingAnimation = ({ message = 'Loading...' }) => {
+  return (
+    <div className="flex flex-col items-center justify-center gap-4">
+      {/* Loader */}
+      <div className="loader"></div>
+      
+      {/* Loading text */}
+      <p className="text-slate-500 text-sm font-medium">{message}</p>
+      
+      <style>{`
+        .loader {
+          width: 50px;
+          aspect-ratio: 1;
+          --c: no-repeat radial-gradient(farthest-side, #1e293b 92%, #0000);
+          background: 
+            var(--c) 50% 0, 
+            var(--c) 50% 100%, 
+            var(--c) 100% 50%, 
+            var(--c) 0 50%;
+          background-size: 10px 10px;
+          animation: l18 1s infinite;
+          position: relative;
+        }
+        .loader::before {    
+          content: "";
+          position: absolute;
+          inset: 0;
+          margin: 3px;
+          background: repeating-conic-gradient(#0000 0 35deg, #1e293b 0 90deg);
+          -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 3px), #000 0);
+          border-radius: 50%;
+        }
+        @keyframes l18 { 
+          100% { transform: rotate(.5turn); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default LoadingAnimation;

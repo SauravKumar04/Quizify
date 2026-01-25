@@ -31,25 +31,40 @@ const Header = () => {
           {/* User Info & Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
             {/* User Badge */}
-            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-slate-50 rounded-lg border border-gray-200">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                {user?.role === 'admin' ? (
+            {user?.role === 'admin' ? (
+              <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-slate-50 rounded-lg border border-gray-200">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-900 rounded-lg flex items-center justify-center">
                   <FiShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                ) : (
-                  <FiUser className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                )}
-              </div>
-              <div className="text-left hidden sm:block">
-                <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
-                <p className="text-xs text-slate-600 capitalize flex items-center gap-1">
-                  {user?.role === 'admin' ? (
+                </div>
+                <div className="text-left hidden sm:block">
+                  <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+                  <p className="text-xs text-slate-600 capitalize flex items-center gap-1">
                     <span className="px-2 py-0.5 bg-slate-900 text-white rounded-full text-[10px] font-bold">ADMIN</span>
-                  ) : (
-                    <span className="text-slate-600 font-medium">User</span>
-                  )}
-                </p>
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <Link 
+                to="/profile"
+                className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 bg-slate-50 rounded-lg border border-gray-200 hover:bg-slate-100 transition"
+              >
+                {user?.profilePicture ? (
+                  <img 
+                    src={user.profilePicture} 
+                    alt={user.name} 
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover"
+                  />
+                ) : (
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                    <FiUser className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
+                  </div>
+                )}
+                <div className="text-left hidden sm:block">
+                  <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+                  <p className="text-xs text-slate-600 font-medium">User</p>
+                </div>
+              </Link>
+            )}
 
             {/* Logout Button */}
             <button

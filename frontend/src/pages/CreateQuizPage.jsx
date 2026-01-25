@@ -125,41 +125,42 @@ const CreateQuizPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <Header />
       
       {/* Sticky Top Bar */}
       <div className="sticky top-16 z-30 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <button
                 onClick={handleCancel}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors"
+                className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 transition-colors flex-shrink-0"
               >
-                <FiArrowLeft className="w-5 h-5" />
-                <span className="font-medium">Back</span>
+                <FiArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="font-medium hidden sm:inline">Back</span>
               </button>
-              <div className="h-6 w-px bg-gray-300"></div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">Create New Quiz</h1>
-                <p className="text-xs text-slate-500 mt-0.5">Auto-saving to drafts</p>
+              <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-bold text-slate-900 truncate">Create New Quiz</h1>
+                <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 hidden sm:block">Auto-saving to drafts</p>
               </div>
             </div>
             <button
               onClick={handleCreateQuiz}
               disabled={saving}
-              className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1 sm:gap-2 bg-slate-900 text-white px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base flex-shrink-0"
             >
               {saving ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating...</span>
+                  <span className="hidden sm:inline">Creating...</span>
                 </>
               ) : (
                 <>
                   <FiSave className="w-4 h-4" />
-                  <span>Create Quiz</span>
+                  <span className="hidden sm:inline">Create Quiz</span>
+                  <span className="sm:hidden">Save</span>
                 </>
               )}
             </button>
@@ -168,15 +169,15 @@ const CreateQuizPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         <form onSubmit={handleCreateQuiz}>
           {/* Quiz Details Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-4 sm:mb-6 flex items-center gap-2">
+              <span className="w-6 h-6 sm:w-8 sm:h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold">1</span>
               Quiz Information
             </h2>
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Quiz Title <span className="text-red-500">*</span>
@@ -221,35 +222,35 @@ const CreateQuizPage = () => {
           </div>
 
           {/* Questions Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <span className="w-8 h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span className="w-6 h-6 sm:w-8 sm:h-8 bg-slate-900 text-white rounded-lg flex items-center justify-center text-xs sm:text-sm font-bold">2</span>
                 Questions ({newQuiz.questions.length})
               </h2>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {newQuiz.questions.map((question, qIndex) => (
-                <div key={qIndex} className="border border-gray-200 rounded-lg p-5 bg-slate-50">
-                  <div className="flex justify-between items-start mb-5">
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center justify-center w-10 h-10 bg-slate-900 text-white rounded-lg text-base font-bold">
+                <div key={qIndex} className="border border-gray-200 rounded-lg p-3 sm:p-5 bg-slate-50">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4 sm:mb-5">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-slate-900 text-white rounded-lg text-sm sm:text-base font-bold shrink-0">
                         {qIndex + 1}
                       </span>
-                      <div>
-                        <h3 className="font-semibold text-slate-900">Question {qIndex + 1}</h3>
-                        <p className="text-xs text-slate-500">Fill in the question details below</p>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900 text-sm sm:text-base">Question {qIndex + 1}</h3>
+                        <p className="text-[10px] sm:text-xs text-slate-500">Fill in the question details below</p>
                       </div>
                     </div>
                     {newQuiz.questions.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeQuestion(qIndex)}
-                        className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg transition-all text-sm font-medium"
+                        className="flex items-center gap-1.5 sm:gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all text-xs sm:text-sm font-medium"
                       >
-                        <FiTrash2 className="w-4 h-4" />
-                        Remove
+                        <FiTrash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <span className="hidden sm:inline">Remove</span>
                       </button>
                     )}
                   </div>
@@ -298,38 +299,38 @@ const CreateQuizPage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-3">
+                      <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-3">
                         Answer Options <span className="text-red-500">*</span>
                       </label>
-                      <div className="space-y-2.5">
+                      <div className="space-y-2 sm:space-y-2.5">
                         {question.options.map((option, optIndex) => (
-                          <div key={optIndex} className="flex items-center gap-3 group">
+                          <div key={optIndex} className="flex items-center gap-2 sm:gap-3 group">
                             <input
                               type="radio"
                               id={`correct-${qIndex}-${optIndex}`}
                               name={`correct-${qIndex}`}
                               checked={question.correctOption === optIndex}
                               onChange={() => updateQuestion(qIndex, 'correctOption', optIndex)}
-                              className="w-5 h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500 cursor-pointer"
+                              className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 border-gray-300 focus:ring-emerald-500 cursor-pointer shrink-0"
                             />
                             <input
                               type="text"
                               required
                               value={option}
                               onChange={(e) => updateOption(qIndex, optIndex, e.target.value)}
-                              className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
+                              className="flex-1 min-w-0 px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400 text-sm sm:text-base"
                               placeholder={`Option ${optIndex + 1}`}
                             />
                             {question.correctOption === optIndex && (
-                              <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg whitespace-nowrap">
-                                <FiCheck className="w-3.5 h-3.5" />
-                                Correct Answer
+                              <span className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg whitespace-nowrap">
+                                <FiCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                <span className="hidden md:inline">Correct</span>
                               </span>
                             )}
                           </div>
                         ))}
                       </div>
-                      <p className="text-xs text-slate-500 mt-2">Select the correct answer by clicking the radio button</p>
+                      <p className="text-[10px] sm:text-xs text-slate-500 mt-2">Select the correct answer by clicking the radio button</p>
                     </div>
 
                     <div>
@@ -360,22 +361,22 @@ const CreateQuizPage = () => {
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex items-center justify-between gap-4 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <p className="text-sm text-slate-600">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+            <p className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
               {newQuiz.questions.length} {newQuiz.questions.length === 1 ? 'question' : 'questions'} added
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-semibold transition-all"
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-semibold transition-all text-sm sm:text-base"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center gap-2 bg-slate-900 text-white px-6 py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
               >
                 {saving ? (
                   <>

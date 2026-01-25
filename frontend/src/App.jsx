@@ -8,6 +8,14 @@ import UserDashboard from './pages/UserDashboard';
 import QuizPage from './pages/QuizPage';
 import ResultPage from './pages/ResultPage';
 import CreateQuizPage from './pages/CreateQuizPage';
+import AdminContestDashboard from './pages/AdminContestDashboard';
+import CreateContestPage from './pages/CreateContestPage';
+import ContestLeaderboard from './pages/ContestLeaderboard';
+import ContestList from './pages/ContestList';
+import ContestPage from './pages/ContestPage';
+import UserContestLeaderboard from './pages/UserContestLeaderboard';
+import ContestResultPage from './pages/ContestResultPage';
+import UserProfile from './pages/UserProfile';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -27,6 +35,26 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 
   if (allowedRole && user?.role !== allowedRole) {
     return <Navigate to={user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'} />;
+  }
+
+  return children;
+};
+
+// Redirect authenticated users away from public routes and / to their dashboard
+const AuthRedirect = ({ children }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (isAuthenticated) {
+    const target = user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard';
+    return <Navigate to={target} replace />;
   }
 
   return children;
@@ -86,8 +114,22 @@ const App = () => {
         />
         <Routes>
           {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route
+            path="/login"
+            element={(
+              <AuthRedirect>
+                <Login />
+              </AuthRedirect>
+            )}
+          />
+          <Route
+            path="/register"
+            element={(
+              <AuthRedirect>
+                <Register />
+              </AuthRedirect>
+            )}
+          />
 
           {/* Admin Routes */}
           <Route
@@ -106,6 +148,39 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/contests"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <AdminContestDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/contest/create"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <CreateContestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/contest/edit/:contestId"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <CreateContestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/contest/:contestId/leaderboard"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <ContestLeaderboard />
+              </ProtectedRoute>
+            }
+          />
+
 
           {/* User Routes */}
           <Route
@@ -132,9 +207,56 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/contests"
+            element={
+              <ProtectedRoute>
+                <ContestList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contest/:contestId"
+            element={
+              <ProtectedRoute>
+                <ContestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contest/:contestId/leaderboard"
+            element={
+              <ProtectedRoute>
+                <UserContestLeaderboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contest/result/:resultId"
+            element={
+              <ProtectedRoute>
+                <ContestResultPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute allowedRole="user">
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Default Route */}
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route
+            path="/"
+            element={(
+              <AuthRedirect>
+                <Navigate to="/login" replace />
+              </AuthRedirect>
+            )}
+          />
         </Routes>
       </AuthProvider>
     </Router>

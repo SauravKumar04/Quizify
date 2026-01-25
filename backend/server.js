@@ -8,6 +8,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/auth');
 const adminQuizRoutes = require('./routes/adminQuiz');
 const userQuizRoutes = require('./routes/userQuiz');
+const contestRoutes = require('./routes/contest');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/quiz', adminQuizRoutes);
 app.use('/api/user/quiz', userQuizRoutes);
+app.use('/api/contest', contestRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
