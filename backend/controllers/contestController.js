@@ -474,8 +474,8 @@ exports.getContestResultDetails = async (req, res) => {
     const detailedAnswers = result.contest.questions.map((question, index) => {
       const userAnswer = result.answers.find(a => a.questionIndex === index);
       return {
-        questionText: question.text,
-        questionImage: question.imageUrl,
+        questionText: question.questionText,
+        questionImage: question.questionImage || '',
         options: question.options,
         correctOption: question.correctOption,
         selectedOption: userAnswer ? userAnswer.selectedOption : null,

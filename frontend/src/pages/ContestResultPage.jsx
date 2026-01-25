@@ -264,12 +264,14 @@ const ContestResultPage = () => {
                   )}
 
                   {/* Explanation */}
-                  {answer.explanation && (
+                  {(answer.explanation || answer.explanationImage) && (
                     <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                       <p className="text-xs font-semibold text-blue-700 uppercase mb-1">Explanation</p>
-                      <p className="text-sm text-blue-800 leading-relaxed">{answer.explanation}</p>
+                      {answer.explanation && (
+                        <p className="text-sm text-blue-800 leading-relaxed">{answer.explanation}</p>
+                      )}
                       {answer.explanationImage && (
-                        <div className="mt-3">
+                        <div className={answer.explanation ? "mt-3" : ""}>
                           <img 
                             src={answer.explanationImage} 
                             alt="Explanation" 
