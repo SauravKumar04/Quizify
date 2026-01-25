@@ -486,9 +486,9 @@ exports.getContestResultDetails = async (req, res) => {
       };
     });
     
-    // Calculate average time per question
-    const totalTimeSpent = detailedAnswers.reduce((sum, a) => sum + (a.timeSpent || 0), 0);
-    const avgTimePerQuestion = result.totalQuestions > 0 ? Math.round(totalTimeSpent / result.totalQuestions) : 0;
+    // Calculate average time per question based on contest duration
+    const contestDurationInSeconds = result.contest.duration * 60;
+    const avgTimePerQuestion = result.totalQuestions > 0 ? Math.round(contestDurationInSeconds / result.totalQuestions) : 0;
     
     // Get rank
     const allResults = await ContestResult.find({ contest: result.contest._id })

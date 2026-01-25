@@ -140,9 +140,9 @@ exports.getResultDetails = async (req, res) => {
       })
     );
 
-    // Calculate average time per question
-    const totalTimeSpent = detailedAnswers.reduce((sum, a) => sum + (a.timeSpent || 0), 0);
-    const avgTimePerQuestion = result.totalQuestions > 0 ? Math.round(totalTimeSpent / result.totalQuestions) : 0;
+    // Calculate average time per question based on quiz duration
+    const quizDurationInSeconds = result.quizId.duration * 60;
+    const avgTimePerQuestion = result.totalQuestions > 0 ? Math.round(quizDurationInSeconds / result.totalQuestions) : 0;
 
     res.status(200).json({
       result: {
