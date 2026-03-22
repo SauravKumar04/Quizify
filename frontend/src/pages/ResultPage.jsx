@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { userQuizAPI } from '../services/api';
 import Header from '../components/Header';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { getRichTextPreview, hasRichTextContent, sanitizeRichTextHtml } from '../utils/richText';
 import { FiCheckCircle, FiXCircle, FiHome, FiMinusCircle, FiChevronDown, FiChevronUp, FiTarget, FiTrendingUp, FiClock } from 'react-icons/fi';
 
 const ResultPage = () => {
@@ -275,7 +276,7 @@ const ResultPage = () => {
                       </div>
 
                       <p className="flex-1 min-w-0 text-xs sm:text-sm text-slate-800 truncate">
-                        {answer.questionText}
+                        {getRichTextPreview(answer.questionText, 120)}
                       </p>
 
                       <div className="flex items-center gap-2 shrink-0">
@@ -307,7 +308,10 @@ const ResultPage = () => {
                     {isExpanded && (
                       <div className="px-3 sm:px-4 pb-4 bg-slate-50">
                         <div className="pl-9 sm:pl-11">
-                          <p className="text-sm text-slate-800 font-medium mb-3">{answer.questionText}</p>
+                          <div
+                            className="rich-text-content rich-text-read text-lg sm:text-xl font-semibold text-slate-900 mb-6 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(answer.questionText) }}
+                          ></div>
 
                           {/* Question Image */}
                           {answer.questionImage && (
@@ -376,14 +380,17 @@ const ResultPage = () => {
                             </div>
                           )}
 
-                          {(answer.explanation || answer.explanationImage) && (
+                          {(hasRichTextContent(answer.explanation) || answer.explanationImage) && (
                             <div className="p-2.5 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
                               <p className="text-[10px] sm:text-xs font-semibold text-blue-700 uppercase mb-1">Explanation</p>
-                              {answer.explanation && (
-                                <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">{answer.explanation}</p>
+                              {hasRichTextContent(answer.explanation) && (
+                                <div
+                                  className="rich-text-content rich-text-read text-xs sm:text-sm text-blue-800 leading-relaxed"
+                                  dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(answer.explanation) }}
+                                ></div>
                               )}
                               {answer.explanationImage && (
-                                <div className={answer.explanation ? "mt-3" : ""}>
+                                <div className={hasRichTextContent(answer.explanation) ? "mt-3" : ""}>
                                   <img 
                                     src={answer.explanationImage} 
                                     alt="Explanation" 

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { adminQuizAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import Header from '../components/Header';
+import RichTextEditor from '../components/RichTextEditor';
+import { hasRichTextContent, sanitizeRichTextHtml } from '../utils/richText';
 import { FiArrowLeft, FiPlus, FiTrash2, FiSave, FiCheck } from 'react-icons/fi';
 
 const CreateQuizPage = () => {
@@ -123,9 +125,25 @@ const CreateQuizPage = () => {
 
   const handleCreateQuiz = async (e) => {
     e.preventDefault();
+
+    const invalidQuestionIndex = newQuiz.questions.findIndex((question) => !hasRichTextContent(question.questionText));
+    if (invalidQuestionIndex !== -1) {
+      toast.error(`Please add content for Question ${invalidQuestionIndex + 1}`);
+      return;
+    }
+
     setSaving(true);
     try {
-      await adminQuizAPI.createQuiz(newQuiz);
+      const payload = {
+        ...newQuiz,
+        questions: newQuiz.questions.map((question) => ({
+          ...question,
+          questionText: sanitizeRichTextHtml(question.questionText),
+          explanation: sanitizeRichTextHtml(question.explanation),
+        })),
+      };
+
+      await adminQuizAPI.createQuiz(payload);
       localStorage.removeItem('quiz_draft');
       toast.success('Quiz created successfully!');
       navigate('/admin/dashboard');
@@ -146,6 +164,22 @@ const CreateQuizPage = () => {
     }
   };
 
+  const uploadRichTextImage = async (file, typeLabel) => {
+    const uploadToast = toast.loading(`Uploading ${typeLabel} image...`);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await adminQuizAPI.uploadQuestionImage(formData);
+      toast.success('Image uploaded successfully', { id: uploadToast });
+      return response.data.imageUrl;
+    } catch (error) {
+      toast.error('Failed to upload image', { id: uploadToast });
+      return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden">
       <Header />
@@ -157,7 +191,7 @@ const CreateQuizPage = () => {
             <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <button
                 onClick={handleCancel}
-                className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 transition-colors flex-shrink-0"
+                className="flex items-center gap-1 sm:gap-2 text-slate-600 hover:text-slate-900 transition-colors shrink-0"
               >
                 <FiArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span className="font-medium hidden sm:inline">Back</span>
@@ -171,7 +205,7 @@ const CreateQuizPage = () => {
             <button
               onClick={handleCreateQuiz}
               disabled={saving}
-              className="flex items-center gap-1 sm:gap-2 bg-slate-900 text-white px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base flex-shrink-0"
+              className="flex items-center gap-1 sm:gap-2 bg-slate-900 text-white px-3 sm:px-6 py-2 sm:py-2.5 rounded-lg hover:bg-slate-800 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base shrink-0"
             >
               {saving ? (
                 <>
@@ -282,14 +316,13 @@ const CreateQuizPage = () => {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Question Text <span className="text-red-500">*</span>
                       </label>
-                      <textarea
-                        required
+                      <RichTextEditor
                         value={question.questionText}
-                        onChange={(e) => updateQuestion(qIndex, 'questionText', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
-                        rows="2"
+                        onChange={(value) => updateQuestion(qIndex, 'questionText', value)}
                         placeholder="Enter your question here..."
+                        onImageUpload={(file) => uploadRichTextImage(file, 'question')}
                       />
+                      <p className="text-[10px] sm:text-xs text-slate-500 mt-2">Use toolbar for bold, underline, lists, spacing, and images.</p>
                     </div>
 
                     <div>
@@ -359,12 +392,11 @@ const CreateQuizPage = () => {
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Explanation (Optional)
                       </label>
-                      <textarea
+                      <RichTextEditor
                         value={question.explanation}
-                        onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-slate-900 focus:border-transparent bg-white text-slate-900 placeholder-slate-400"
-                        rows="2"
+                        onChange={(value) => updateQuestion(qIndex, 'explanation', value)}
                         placeholder="Explain why this is the correct answer..."
+                        onImageUpload={(file) => uploadRichTextImage(file, 'explanation')}
                       />
                     </div>
 

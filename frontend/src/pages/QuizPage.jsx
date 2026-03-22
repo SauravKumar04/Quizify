@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { userQuizAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import LoadingAnimation from '../components/LoadingAnimation';
+import { sanitizeRichTextHtml } from '../utils/richText';
 import { FiClock, FiCheckCircle, FiArrowRight, FiArrowLeft, FiFlag } from 'react-icons/fi';
 
 const QuizPage = () => {
@@ -288,6 +289,7 @@ const QuizPage = () => {
   if (!quiz) return null;
 
   const currentQ = quiz.questions[currentQuestion];
+  const renderedQuestionText = sanitizeRichTextHtml(currentQ.questionText);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -369,9 +371,10 @@ const QuizPage = () => {
             </div>
 
             <div className="p-5 sm:p-6">
-              <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-6 leading-relaxed">
-                {currentQ.questionText}
-              </h2>
+              <div
+                className="rich-text-content rich-text-read text-lg sm:text-xl font-semibold text-slate-900 mb-6 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: renderedQuestionText }}
+              ></div>
 
               {currentQ.questionImage && (
                 <div className="mb-6">
