@@ -391,11 +391,8 @@ const QuizPlayer = ({ quizId }) => {
       </div>
 
       <div className="max-w-425 mx-auto px-4 sm:px-6 py-5 sm:py-6 overflow-x-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-11 items-start gap-5 min-h-[calc(100vh-150px)]">
-          <div
-            className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-6 flex flex-col"
-            style={{ maxHeight: 'calc(100vh - 190px)' }}
-          >
+        <div className="grid grid-cols-1 lg:grid-cols-11 items-start gap-5 lg:min-h-[calc(100vh-150px)]">
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-6 flex flex-col">
             <div className="bg-slate-50 border-b border-slate-200 px-5 py-3.5">
               <p className="text-sm font-semibold text-slate-800">Question {currentQuestionIndex + 1} of {totalQuestionsInSection}</p>
               <p className="text-xs text-slate-500 mt-1">Answered {answeredInCurrentSection}/{totalQuestionsInSection} in this section</p>
@@ -407,7 +404,7 @@ const QuizPlayer = ({ quizId }) => {
               </div>
             </div>
 
-            <div className="p-5 sm:p-6 flex-1 overflow-y-auto overscroll-contain">
+            <div className="p-5 sm:p-6 flex-1 overflow-visible lg:overflow-y-auto lg:overscroll-contain lg:max-h-[calc(100vh-290px)]">
               <div
                 className="rich-text-content rich-text-read text-lg sm:text-xl font-semibold text-slate-900 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(currentQuestion.questionText) }}
@@ -453,16 +450,13 @@ const QuizPlayer = ({ quizId }) => {
             </div>
           </div>
 
-          <div
-            className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-5 flex flex-col"
-            style={{ maxHeight: 'calc(100vh - 190px)' }}
-          >
+          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-5 flex flex-col">
             <div className="bg-slate-50 border-b border-slate-200 px-5 py-3.5">
               <p className="text-sm font-semibold text-slate-800">Choose your answer</p>
               <p className="text-xs text-slate-500 mt-0.5">Selection highlights border only</p>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-2.5 flex-1 overflow-y-auto overscroll-contain">
+            <div className="p-5 sm:p-6 space-y-2.5 flex-1 overflow-visible lg:overflow-y-auto lg:overscroll-contain lg:max-h-[calc(100vh-290px)]">
               {currentQuestion.options.map((option, optionIndex) => {
                 const isSelected = selectedOption === optionIndex;
 
