@@ -63,9 +63,15 @@ export const adminQuizAPI = {
 
 // User Quiz APIs
 export const userQuizAPI = {
-  getAllQuizzes: () => api.get('/user/quiz/all'),
+  getAllQuizzes: (params = {}) => api.get('/user/quiz/all', { params }),
   getQuizForAttempt: (quizId) => api.get(`/user/quiz/${quizId}/attempt`),
-  submitQuiz: (quizId, answers, totalTimeTaken) => api.post(`/user/quiz/${quizId}/submit`, { answers, totalTimeTaken }),
+  submitQuiz: (quizId, payloadOrAnswers, totalTimeTaken) => {
+    if (Array.isArray(payloadOrAnswers)) {
+      return api.post(`/user/quiz/${quizId}/submit`, { answers: payloadOrAnswers, totalTimeTaken });
+    }
+
+    return api.post(`/user/quiz/${quizId}/submit`, payloadOrAnswers || {});
+  },
   getResultDetails: (resultId) => api.get(`/user/quiz/result/${resultId}`),
   getQuizHistory: () => api.get('/user/quiz/history'),
   deleteResult: (resultId) => api.delete(`/user/quiz/result/${resultId}`),

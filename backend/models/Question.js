@@ -32,6 +32,16 @@ const questionSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  sectionIndex: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  sectionTitle: {
+    type: String,
+    default: '',
+    trim: true,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Question', questionSchema);

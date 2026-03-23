@@ -2,21 +2,115 @@ const Quiz = require('../models/Quiz');
 const Question = require('../models/Question');
 const Result = require('../models/Result');
 
-// Get all public quizzes (available to users)
+const SUBJECT_FILTERS = [
+  'all',
+  'full-test',
+  'aptitude',
+  'logical-reasoning',
+  'verbal-ability',
+  'coding',
+  'web-development',
+  'dsa',
+  'databases',
+  'operating-system',
+  'computer-networks',
+  'oops',
+  'data-interpretation',
+];
+
+const toAttemptSections = (quiz) => {
+  if (Array.isArray(quiz.sections) && quiz.sections.length > 0) {
+    return quiz.sections.map((section, index) => ({
+      sectionIndex: index,
+      title: section.title,
+      timeLimit: section.timeLimit,
+      questions: section.questions,
+    }));
+  }
+
+  return [{
+    sectionIndex: 0,
+    title: 'Section 1',
+    timeLimit: quiz.duration || 30,
+    questions: quiz.questions || [],
+  }];
+};
+
+const normalizeSectionSubmissions = (payload, sections) => {
+  if (Array.isArray(payload.sectionSubmissions) && payload.sectionSubmissions.length > 0) {
+    return payload.sectionSubmissions;
+  }
+
+  const legacyAnswers = Array.isArray(payload.answers) ? payload.answers : [];
+  return [{
+    sectionIndex: 0,
+    timeTaken: payload.totalTimeTaken || 0,
+    answers: legacyAnswers,
+  }].filter(() => sections.length > 0);
+};
+
 exports.getAllQuizzes = async (req, res) => {
   try {
-    const quizzes = await Quiz.find({ isPublic: true })
-      .populate('createdBy', 'name email')
-      .populate('questions', '_id') // Only get IDs to count questions
-      .sort({ createdAt: -1 });
+    const requestedSubjectRaw = String(req.query.subject || 'all').trim().toLowerCase();
+    const requestedSubject = SUBJECT_FILTERS.includes(requestedSubjectRaw) ? requestedSubjectRaw : 'all';
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(30, Math.max(1, Number.parseInt(req.query.limit, 10) || 12));
+    const skip = (page - 1) * limit;
 
-    res.status(200).json({ quizzes });
+    const baseFilter = { isPublic: true };
+    let subjectFilter = {};
+
+    if (requestedSubject && requestedSubject !== 'all') {
+      if (requestedSubject === 'full-test') {
+        subjectFilter = {
+          $or: [
+            { subject: 'full-test' },
+            { tags: 'full-test' },
+            { title: { $regex: /full\s*test/i } },
+          ],
+        };
+      } else {
+        subjectFilter = {
+          $or: [
+            { subject: requestedSubject },
+            { tags: requestedSubject },
+          ],
+        };
+      }
+    }
+
+    const queryFilter = { ...baseFilter, ...subjectFilter };
+
+    const [quizzes, total] = await Promise.all([
+      Quiz.find(queryFilter)
+      .populate('createdBy', 'name email')
+      .populate('questions', '_id')
+      .populate({ path: 'sections.questions', select: '_id' })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }),
+      Quiz.countDocuments(queryFilter),
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    res.status(200).json({
+      quizzes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasMore: page < totalPages,
+      },
+      availableSubjects: SUBJECT_FILTERS,
+      selectedSubject: requestedSubject,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch quizzes', error: error.message });
   }
 };
 
-// Get quiz by ID with questions (for attempting)
 exports.getQuizForAttempt = async (req, res) => {
   try {
     const { quizId } = req.params;
@@ -24,7 +118,11 @@ exports.getQuizForAttempt = async (req, res) => {
     const quiz = await Quiz.findById(quizId)
       .populate({
         path: 'questions',
-        select: 'questionText options questionImage', // Include questionImage, but don't send correct answers yet
+        select: 'questionText options questionImage sectionIndex',
+      })
+      .populate({
+        path: 'sections.questions',
+        select: 'questionText options questionImage sectionIndex',
       })
       .populate('createdBy', 'name');
 
@@ -32,65 +130,97 @@ exports.getQuizForAttempt = async (req, res) => {
       return res.status(404).json({ message: 'Quiz not found' });
     }
 
-    // Check if user can access this quiz
     if (!quiz.isPublic && quiz.createdBy._id.toString() !== req.userId) {
       return res.status(403).json({ message: 'Access denied to this quiz' });
     }
 
-    res.status(200).json({ quiz });
+    const quizObject = quiz.toObject();
+    quizObject.sections = toAttemptSections(quizObject);
+
+    res.status(200).json({ quiz: quizObject });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch quiz', error: error.message });
   }
 };
 
-// Submit quiz answers and calculate score
 exports.submitQuiz = async (req, res) => {
   try {
     const { quizId } = req.params;
-    const { answers, totalTimeTaken } = req.body; // answers: [{ questionId, selectedOption, timeSpent }]
+    const payload = req.body || {};
 
-    const quiz = await Quiz.findById(quizId).populate('questions');
+    const quiz = await Quiz.findById(quizId)
+      .populate('questions')
+      .populate({ path: 'sections.questions' });
+
     if (!quiz) {
       return res.status(404).json({ message: 'Quiz not found' });
     }
 
-    // Calculate score
+    const sections = toAttemptSections(quiz.toObject());
+    const sectionSubmissions = normalizeSectionSubmissions(payload, sections);
+
     let score = 0;
+    let totalQuestions = 0;
     const resultAnswers = [];
+    const sectionResults = [];
 
-    for (const answer of answers) {
-      const question = await Question.findById(answer.questionId);
-      if (!question) continue;
+    sections.forEach((section, sectionIndex) => {
+      const sectionSubmission = sectionSubmissions.find((entry) => entry.sectionIndex === sectionIndex)
+        || sectionSubmissions[sectionIndex]
+        || { answers: [], timeTaken: 0 };
 
-      const isCorrect = question.correctOption === answer.selectedOption;
-      if (isCorrect) score++;
+      let sectionScore = 0;
+      const sectionQuestions = section.questions || [];
+      totalQuestions += sectionQuestions.length;
 
-      resultAnswers.push({
-        questionId: answer.questionId,
-        selectedOption: answer.selectedOption,
-        isCorrect,
-        timeSpent: answer.timeSpent || 0,
+      sectionQuestions.forEach((question) => {
+        const submittedAnswer = (sectionSubmission.answers || []).find((answer) => String(answer.questionId) === String(question._id));
+        const selectedOption = submittedAnswer && Number.isInteger(submittedAnswer.selectedOption)
+          ? submittedAnswer.selectedOption
+          : -1;
+
+        const isCorrect = selectedOption !== -1 && question.correctOption === selectedOption;
+
+        if (isCorrect) {
+          score += 1;
+          sectionScore += 1;
+        }
+
+        resultAnswers.push({
+          questionId: question._id,
+          sectionIndex,
+          selectedOption,
+          isCorrect,
+          timeSpent: submittedAnswer?.timeSpent || 0,
+        });
       });
-    }
 
-    const totalQuestions = quiz.questions.length;
-    const percentage = (score / totalQuestions) * 100;
+      sectionResults.push({
+        sectionIndex,
+        sectionTitle: section.title,
+        score: sectionScore,
+        totalQuestions: sectionQuestions.length,
+        timeLimit: section.timeLimit || 0,
+        timeTaken: sectionSubmission.timeTaken || 0,
+      });
+    });
 
-    // Save result
+    const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
     const result = await Result.create({
       userId: req.userId,
       quizId: quiz._id,
       answers: resultAnswers,
+      sectionResults,
       score,
       totalQuestions,
       percentage: percentage.toFixed(2),
-      totalTimeTaken: totalTimeTaken || 0,
+      totalTimeTaken: payload.totalTimeTaken || sectionResults.reduce((sum, section) => sum + (section.timeTaken || 0), 0),
     });
 
-    // Populate result with full details
     const populatedResult = await Result.findById(result._id)
       .populate('userId', 'name email')
-      .populate('quizId', 'title description');
+      .populate('quizId', 'title description duration');
 
     res.status(201).json({
       message: 'Quiz submitted successfully',
@@ -104,7 +234,6 @@ exports.submitQuiz = async (req, res) => {
   }
 };
 
-// Get result details with correct answers and explanations
 exports.getResultDetails = async (req, res) => {
   try {
     const { resultId } = req.params;
@@ -117,37 +246,44 @@ exports.getResultDetails = async (req, res) => {
       return res.status(404).json({ message: 'Result not found' });
     }
 
-    // Check authorization
     if (result.userId._id.toString() !== req.userId) {
       return res.status(403).json({ message: 'Unauthorized access' });
     }
 
-    // Get full question details with correct answers
-    const detailedAnswers = await Promise.all(
-      result.answers.map(async (answer) => {
-        const question = await Question.findById(answer.questionId);
-        return {
-          questionText: question.questionText,
-          questionImage: question.questionImage || '',
-          options: question.options,
-          selectedOption: answer.selectedOption,
-          correctOption: question.correctOption,
-          isCorrect: answer.isCorrect,
-          explanation: question.explanation,
-          explanationImage: question.explanationImage || '',
-          timeSpent: answer.timeSpent || 0,
-        };
-      })
-    );
+    const questionIds = result.answers.map((answer) => answer.questionId);
+    const questions = await Question.find({ _id: { $in: questionIds } });
+    const questionMap = new Map(questions.map((question) => [String(question._id), question]));
 
-    // Calculate average time per question based on quiz duration
-    const quizDurationInSeconds = result.quizId.duration * 60;
-    const avgTimePerQuestion = result.totalQuestions > 0 ? Math.round(quizDurationInSeconds / result.totalQuestions) : 0;
+    const detailedAnswers = result.answers.map((answer) => {
+      const question = questionMap.get(String(answer.questionId));
+      return {
+        sectionIndex: answer.sectionIndex || 0,
+        sectionTitle: question?.sectionTitle || `Section ${(answer.sectionIndex || 0) + 1}`,
+        questionText: question?.questionText || '',
+        questionImage: question?.questionImage || '',
+        options: question?.options || [],
+        selectedOption: answer.selectedOption,
+        correctOption: question?.correctOption ?? -1,
+        isCorrect: answer.isCorrect,
+        explanation: question?.explanation || '',
+        explanationImage: question?.explanationImage || '',
+        timeSpent: answer.timeSpent || 0,
+      };
+    });
+
+    const sectionResults = (result.sectionResults && result.sectionResults.length > 0)
+      ? result.sectionResults
+      : [];
+
+    const avgTimePerQuestion = result.totalQuestions > 0
+      ? Math.round((result.totalTimeTaken || 0) / result.totalQuestions)
+      : 0;
 
     res.status(200).json({
       result: {
         ...result.toObject(),
         detailedAnswers,
+        sectionResults,
         avgTimePerQuestion,
       },
     });
@@ -156,7 +292,6 @@ exports.getResultDetails = async (req, res) => {
   }
 };
 
-// Get user's quiz history
 exports.getUserQuizHistory = async (req, res) => {
   try {
     const results = await Result.find({ userId: req.userId })
@@ -169,7 +304,6 @@ exports.getUserQuizHistory = async (req, res) => {
   }
 };
 
-// Delete result from history
 exports.deleteResult = async (req, res) => {
   try {
     const { resultId } = req.params;
@@ -180,7 +314,6 @@ exports.deleteResult = async (req, res) => {
       return res.status(404).json({ message: 'Result not found' });
     }
 
-    // Check authorization - only the user who created the result can delete it
     if (result.userId.toString() !== req.userId) {
       return res.status(403).json({ message: 'Unauthorized to delete this result' });
     }

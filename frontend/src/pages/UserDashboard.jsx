@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { userQuizAPI } from '../services/api';
@@ -7,15 +7,45 @@ import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import QuizCard from '../components/QuizCard';
 import LoadingAnimation from '../components/LoadingAnimation';
-import { FiClock, FiCheckCircle, FiTrendingUp, FiAward, FiTrash2 } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiTrendingUp, FiAward, FiTrash2, FiFilter, FiX } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
+
+const FILTER_PRIORITY = [
+  'all',
+  'full-test',
+  'aptitude',
+  'logical-reasoning',
+  'verbal-ability',
+  'coding',
+  'web-development',
+  'dsa',
+  'databases',
+  'operating-system',
+  'computer-networks',
+  'oops',
+  'data-interpretation',
+];
+const QUIZZES_PAGE_SIZE = 12;
+
+const formatFilterLabel = (tag) => {
+  if (!tag) return '';
+  return tag
+    .split('-')
+    .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+    .join(' ');
+};
 
 const UserDashboard = () => {
   const [activeTab, setActiveTab] = useState('available');
   const [quizzes, setQuizzes] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [quizzesWithProgress, setQuizzesWithProgress] = useState(new Set());
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [quizPage, setQuizPage] = useState(1);
+  const [hasMoreQuizzes, setHasMoreQuizzes] = useState(false);
+  const filtersReadyRef = useRef(false);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -24,6 +54,11 @@ const UserDashboard = () => {
     fetchData();
     checkSavedProgress();
   }, []);
+
+  useEffect(() => {
+    if (!filtersReadyRef.current || loading) return;
+    fetchQuizzes({ page: 1, tag: selectedFilter, append: false });
+  }, [selectedFilter]);
 
   // Re-check progress when component mounts or becomes visible
   useEffect(() => {
@@ -46,26 +81,60 @@ const UserDashboard = () => {
     const progressSet = new Set();
     // Check localStorage for saved quiz progress
     Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('quiz_progress_')) {
-        const quizId = key.replace('quiz_progress_', '');
+      if (key.startsWith('quiz_progress_') || key.startsWith('quiz_multi_session_')) {
+        const quizId = key.startsWith('quiz_progress_')
+          ? key.replace('quiz_progress_', '')
+          : key.replace('quiz_multi_session_', '');
         progressSet.add(quizId);
       }
     });
     setQuizzesWithProgress(progressSet);
   };
 
+  const fetchQuizzes = async ({ page = 1, tag = 'all', append = false } = {}) => {
+    const response = await userQuizAPI.getAllQuizzes({
+      page,
+      limit: QUIZZES_PAGE_SIZE,
+      subject: tag,
+    });
+
+    const incomingQuizzes = response.data?.quizzes || [];
+    const pagination = response.data?.pagination || {};
+
+    setQuizzes((prev) => (append ? [...prev, ...incomingQuizzes] : incomingQuizzes));
+    setQuizPage(page);
+    setHasMoreQuizzes(Boolean(pagination.hasMore));
+  };
+
   const fetchData = async () => {
     try {
       const [quizzesRes, historyRes] = await Promise.all([
-        userQuizAPI.getAllQuizzes(),
+        userQuizAPI.getAllQuizzes({ page: 1, limit: QUIZZES_PAGE_SIZE, subject: selectedFilter }),
         userQuizAPI.getQuizHistory(),
       ]);
-      setQuizzes(quizzesRes.data.quizzes);
+
+      setQuizzes(quizzesRes.data?.quizzes || []);
+      setHasMoreQuizzes(Boolean(quizzesRes.data?.pagination?.hasMore));
+      setQuizPage(1);
       setHistory(historyRes.data.results);
     } catch (error) {
       console.error('Failed to fetch data:', error);
     } finally {
+      filtersReadyRef.current = true;
       setLoading(false);
+    }
+  };
+
+  const handleShowMore = async () => {
+    if (loadingMore || !hasMoreQuizzes) return;
+    setLoadingMore(true);
+
+    try {
+      await fetchQuizzes({ page: quizPage + 1, tag: selectedFilter, append: true });
+    } catch (error) {
+      toast.error('Failed to load more quizzes');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -188,23 +257,85 @@ const UserDashboard = () => {
             ) : (
               <>
                 {activeTab === 'available' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {quizzes.length === 0 ? (
-                      <div className="col-span-full text-center py-16 bg-white border border-gray-200 rounded-lg">
-                        <p className="text-slate-500 text-base font-medium">No quizzes available</p>
-                        <p className="text-slate-400 text-sm mt-2">Check back later for new challenges!</p>
+                  <>
+                    <div className="mb-4 sm:mb-5 rounded-xl border border-slate-200 bg-linear-to-b from-white to-slate-50/60 p-3.5 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+                        <div>
+                          <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            <FiFilter className="w-3.5 h-3.5" />
+                            Filter Quizzes
+                          </p>
+                          <p className="text-xs text-slate-600 mt-1">
+                            Showing: <span className="font-semibold text-slate-800">{formatFilterLabel(selectedFilter)}</span>
+                          </p>
+                        </div>
+
+                        {selectedFilter !== 'all' && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedFilter('all')}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          >
+                            <FiX className="w-3.5 h-3.5" />
+                            Reset
+                          </button>
+                        )}
                       </div>
-                    ) : (
-                      quizzes.map((quiz) => (
-                        <QuizCard
-                          key={quiz._id}
-                          quiz={quiz}
-                          onClick={() => navigate(`/quiz/${quiz._id}`)}
-                          hasProgress={quizzesWithProgress.has(quiz._id)}
-                        />
-                      ))
+
+                      <div className="mt-3 overflow-x-auto pb-1">
+                        <div className="flex gap-2 min-w-max pr-1">
+                          {FILTER_PRIORITY.map((filterTag) => {
+                            const isActive = selectedFilter === filterTag;
+                            return (
+                              <button
+                                key={filterTag}
+                                type="button"
+                                onClick={() => setSelectedFilter(filterTag)}
+                                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                                  isActive
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50 hover:border-slate-400'
+                                }`}
+                              >
+                                {formatFilterLabel(filterTag)}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {quizzes.length === 0 ? (
+                        <div className="col-span-full text-center py-16 bg-white border border-gray-200 rounded-lg">
+                          <p className="text-slate-500 text-base font-medium">No quizzes found for this filter</p>
+                          <p className="text-slate-400 text-sm mt-2">Try another category or check back later.</p>
+                        </div>
+                      ) : (
+                        quizzes.map((quiz) => (
+                          <QuizCard
+                            key={quiz._id}
+                            quiz={quiz}
+                            onClick={() => navigate(`/quiz/${quiz._id}`)}
+                            hasProgress={quizzesWithProgress.has(quiz._id)}
+                          />
+                        ))
+                      )}
+                    </div>
+
+                    {quizzes.length > 0 && hasMoreQuizzes && (
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={handleShowMore}
+                          disabled={loadingMore}
+                          className="px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm hover:bg-slate-50 disabled:opacity-60"
+                        >
+                          {loadingMore ? 'Loading...' : 'Show More'}
+                        </button>
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
 
                 {activeTab === 'history' && (

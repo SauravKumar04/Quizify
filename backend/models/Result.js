@@ -16,6 +16,11 @@ const resultSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Question',
     },
+    sectionIndex: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     selectedOption: {
       type: Number,
       min: -1,  // -1 indicates unattempted
@@ -26,6 +31,33 @@ const resultSchema = new mongoose.Schema({
     },
     timeSpent: {
       type: Number, // in seconds
+      default: 0,
+    },
+  }],
+  sectionResults: [{
+    sectionIndex: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    sectionTitle: {
+      type: String,
+      required: true,
+    },
+    score: {
+      type: Number,
+      required: true,
+    },
+    totalQuestions: {
+      type: Number,
+      required: true,
+    },
+    timeLimit: {
+      type: Number,
+      default: 0,
+    },
+    timeTaken: {
+      type: Number,
       default: 0,
     },
   }],

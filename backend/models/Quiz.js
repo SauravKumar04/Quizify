@@ -1,5 +1,37 @@
 const mongoose = require('mongoose');
 
+const SUBJECT_OPTIONS = [
+  'full-test',
+  'aptitude',
+  'logical-reasoning',
+  'verbal-ability',
+  'coding',
+  'web-development',
+  'dsa',
+  'databases',
+  'operating-system',
+  'computer-networks',
+  'oops',
+  'data-interpretation',
+];
+
+const sectionSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  timeLimit: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  questions: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Question',
+  }],
+}, { _id: false });
+
 const quizSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -28,9 +60,18 @@ const quizSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Question',
   }],
+  sections: {
+    type: [sectionSchema],
+    default: [],
+  },
   duration: {
     type: Number, // in minutes
     default: 30,
+  },
+  subject: {
+    type: String,
+    enum: SUBJECT_OPTIONS,
+    default: 'full-test',
   },
 }, { timestamps: true });
 
