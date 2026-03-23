@@ -26,14 +26,17 @@ const CreateQuizPage = () => {
   };
 
   const handleCreateQuiz = async (payload) => {
+    if (saving) return;
+
     setSaving(true);
+    const submitToast = toast.loading('Submitting quiz...');
 
     try {
       await adminQuizAPI.createQuiz(payload);
-      toast.success('Quiz created successfully');
+      toast.success('Quiz created successfully', { id: submitToast });
       navigate('/admin/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create quiz');
+      toast.error(error.response?.data?.message || 'Failed to create quiz', { id: submitToast });
     } finally {
       setSaving(false);
     }

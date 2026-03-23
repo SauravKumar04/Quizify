@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { FiPlus, FiSave } from 'react-icons/fi';
+import { FiLoader, FiPlus, FiSave } from 'react-icons/fi';
 import SectionForm from './SectionForm';
 import { hasRichTextContent, sanitizeRichTextHtml } from '../../utils/richText';
 
@@ -42,6 +42,7 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
     subject: 'full-test',
     sections: [createEmptySection(0)],
   });
+  const [showSubmitConfirmModal, setShowSubmitConfirmModal] = useState(false);
 
   useEffect(() => {
     const draft = localStorage.getItem(DRAFT_KEY);
@@ -184,30 +185,38 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
     return true;
   };
 
-  const handleSubmit = async (event) => {
+  const buildPayload = () => ({
+    title: quiz.title.trim(),
+    description: quiz.description.trim(),
+    subject: quiz.subject,
+    duration: totalTimeLimit,
+    sections: quiz.sections.map((section, sectionIndex) => ({
+      title: section.title.trim() || `Section ${sectionIndex + 1}`,
+      timeLimit: Number(section.timeLimit) || 1,
+      questions: section.questions.map((question) => ({
+        questionText: sanitizeRichTextHtml(question.questionText),
+        options: question.options.map((option) => option.trim()),
+        correctAnswer: question.correctAnswer,
+        explanation: sanitizeRichTextHtml(question.explanation),
+        questionImage: question.questionImage || '',
+        explanationImage: question.explanationImage || '',
+      })),
+    })),
+  });
+
+  const handleSubmit = (event) => {
     event.preventDefault();
 
+    if (saving) return;
     if (!validateQuiz()) return;
+    setShowSubmitConfirmModal(true);
+  };
 
-    const payload = {
-      title: quiz.title.trim(),
-      description: quiz.description.trim(),
-      subject: quiz.subject,
-      duration: totalTimeLimit,
-      sections: quiz.sections.map((section, sectionIndex) => ({
-        title: section.title.trim() || `Section ${sectionIndex + 1}`,
-        timeLimit: Number(section.timeLimit) || 1,
-        questions: section.questions.map((question) => ({
-          questionText: sanitizeRichTextHtml(question.questionText),
-          options: question.options.map((option) => option.trim()),
-          correctAnswer: question.correctAnswer,
-          explanation: sanitizeRichTextHtml(question.explanation),
-          questionImage: question.questionImage || '',
-          explanationImage: question.explanationImage || '',
-        })),
-      })),
-    };
+  const confirmSubmitQuiz = async () => {
+    if (saving) return;
 
+    const payload = buildPayload();
+    setShowSubmitConfirmModal(false);
     await onSubmitQuiz(payload);
     localStorage.removeItem(DRAFT_KEY);
   };
@@ -290,6 +299,7 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
         <button
           type="button"
           onClick={onCancel}
+          disabled={saving}
           className="px-4 py-2.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold"
         >
           Cancel
@@ -299,10 +309,49 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
           disabled={saving}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-semibold disabled:opacity-60"
         >
-          <FiSave className="w-4 h-4" />
-          {saving ? 'Saving...' : 'Create Quiz'}
+          {saving ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiSave className="w-4 h-4" />}
+          {saving ? 'Submitting Quiz...' : 'Create Quiz'}
         </button>
       </div>
+
+      {showSubmitConfirmModal && (
+        <div className="fixed inset-0 z-50 bg-black/45 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-5">
+            <h3 className="text-lg font-bold text-slate-900">Submit Quiz?</h3>
+            <p className="text-sm text-slate-600 mt-2">
+              Please confirm once before creating this quiz. You can still edit it later from the admin dashboard.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSubmitConfirmModal(false)}
+                className="px-4 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmSubmitQuiz}
+                className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-semibold"
+              >
+                Confirm Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {saving && (
+        <div className="fixed inset-0 z-55 bg-black/25 backdrop-blur-[1px] flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-xl px-5 py-4 flex items-center gap-3">
+            <FiLoader className="w-5 h-5 animate-spin text-slate-800" />
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Submitting quiz...</p>
+              <p className="text-xs text-slate-600">Please wait while we save sections and questions.</p>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 };

@@ -390,9 +390,12 @@ const QuizPlayer = ({ quizId }) => {
         </div>
       </div>
 
-      <div className="max-w-425 mx-auto px-4 sm:px-6 py-5 sm:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-11 gap-5 min-h-[calc(100vh-150px)]">
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-6 flex flex-col">
+      <div className="max-w-425 mx-auto px-4 sm:px-6 py-5 sm:py-6 overflow-x-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-11 items-start gap-5 min-h-[calc(100vh-150px)]">
+          <div
+            className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-6 flex flex-col"
+            style={{ maxHeight: 'calc(100vh - 190px)' }}
+          >
             <div className="bg-slate-50 border-b border-slate-200 px-5 py-3.5">
               <p className="text-sm font-semibold text-slate-800">Question {currentQuestionIndex + 1} of {totalQuestionsInSection}</p>
               <p className="text-xs text-slate-500 mt-1">Answered {answeredInCurrentSection}/{totalQuestionsInSection} in this section</p>
@@ -404,7 +407,7 @@ const QuizPlayer = ({ quizId }) => {
               </div>
             </div>
 
-            <div className="p-5 sm:p-6 flex-1">
+            <div className="p-5 sm:p-6 flex-1 overflow-y-auto overscroll-contain">
               <div
                 className="rich-text-content rich-text-read text-lg sm:text-xl font-semibold text-slate-900 leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: sanitizeRichTextHtml(currentQuestion.questionText) }}
@@ -450,13 +453,16 @@ const QuizPlayer = ({ quizId }) => {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-5 flex flex-col">
+          <div
+            className="bg-white border border-slate-200 rounded-xl overflow-hidden lg:col-span-5 flex flex-col"
+            style={{ maxHeight: 'calc(100vh - 190px)' }}
+          >
             <div className="bg-slate-50 border-b border-slate-200 px-5 py-3.5">
               <p className="text-sm font-semibold text-slate-800">Choose your answer</p>
               <p className="text-xs text-slate-500 mt-0.5">Selection highlights border only</p>
             </div>
 
-            <div className="p-5 sm:p-6 space-y-2.5 flex-1">
+            <div className="p-5 sm:p-6 space-y-2.5 flex-1 overflow-y-auto overscroll-contain">
               {currentQuestion.options.map((option, optionIndex) => {
                 const isSelected = selectedOption === optionIndex;
 
@@ -502,15 +508,17 @@ const QuizPlayer = ({ quizId }) => {
                     <FiArrowRight className="w-4 h-4" />
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={requestManualSubmitSection}
-                  disabled={submitting || sectionTransitioning}
-                  className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-semibold text-sm disabled:opacity-60 flex-1 sm:flex-none"
-                >
-                  {currentSectionIndex === totalSections - 1 ? 'Submit Quiz' : 'Submit Section'}
-                  <FiCheckCircle className="w-4 h-4" />
-                </button>
+                {currentQuestionIndex === totalQuestionsInSection - 1 && (
+                  <button
+                    type="button"
+                    onClick={requestManualSubmitSection}
+                    disabled={submitting || sectionTransitioning}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-semibold text-sm disabled:opacity-60 flex-1 sm:flex-none"
+                  >
+                    {currentSectionIndex === totalSections - 1 ? 'Submit Quiz' : 'Submit Section'}
+                    <FiCheckCircle className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -554,7 +562,7 @@ const QuizPlayer = ({ quizId }) => {
       )}
 
       {showSubmitConfirmModal && (
-        <div className="fixed inset-0 z-[55] bg-black/45 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-55 bg-black/45 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-5">
             <h3 className="text-lg font-bold text-slate-900">
               {currentSectionIndex === totalSections - 1 ? 'Submit Quiz?' : 'Submit Section?'}
@@ -588,9 +596,9 @@ const QuizPlayer = ({ quizId }) => {
       )}
 
       {showInstructionsModal && (
-        <div className="fixed inset-0 z-[60] bg-black/55 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-60 bg-black/55 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-2xl w-full p-0 overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+            <div className="px-5 sm:px-6 py-4 border-b border-slate-200 bg-linear-to-r from-slate-50 to-white">
               <div className="flex items-start gap-2">
                 <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
                   <FiShield className="w-4 h-4" />

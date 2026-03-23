@@ -82,10 +82,10 @@ const PerformanceTooltip = ({ active, payload }) => {
   if (!point) return null;
 
   const statusIcon = point.isSkipped
-    ? <FiMinusCircle className="w-3.5 h-3.5 text-slate-600" />
+    ? <FiMinusCircle className="w-3.5 h-3.5 text-slate-500" />
     : point.isCorrect
-    ? <FiCheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-    : <FiXCircle className="w-3.5 h-3.5 text-rose-600" />;
+    ? <FiCheckCircle className="w-3.5 h-3.5 text-slate-900" />
+    : <FiXCircle className="w-3.5 h-3.5 text-slate-700" />;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white/95 shadow-lg px-3.5 py-3 min-w-56 backdrop-blur-sm">
@@ -94,7 +94,7 @@ const PerformanceTooltip = ({ active, payload }) => {
           <p className="text-xs font-semibold text-slate-900">{point.questionLabel}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">{point.sectionTitle}</p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+        <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
           {statusIcon}
           {point.statusLabel}
         </span>
@@ -115,7 +115,7 @@ const PerformanceTooltip = ({ active, payload }) => {
         </p>
         <p className="flex items-center justify-between gap-3 border-t border-slate-100 pt-1.5">
           <span className="inline-flex items-center gap-1">{point.delta >= 0 ? <FiTrendingUp className="w-3.5 h-3.5 text-emerald-600" /> : <FiTrendingDown className="w-3.5 h-3.5 text-rose-600" />}Impact</span>
-          <span className={`font-semibold ${point.delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>{point.delta >= 0 ? '+' : ''}{point.delta}</span>
+          <span className="font-semibold text-slate-900">{point.delta >= 0 ? '+' : ''}{point.delta}</span>
         </p>
       </div>
     </div>
@@ -306,7 +306,7 @@ const ResultPage = () => {
     if (!sectionResults.length) return [];
 
     const totalScore = Math.max(1, sectionResults.reduce((sum, section) => sum + (section.score || 0), 0));
-    const chartPalette = ['#1d4ed8', '#059669', '#d97706', '#dc2626', '#7c3aed', '#0891b2', '#be185d', '#475569'];
+    const chartPalette = ['#000000', '#6b7280', '#8b5e3c', '#374151', '#4a2c2a', '#525252', '#7a5230', '#1f2937'];
 
     return sectionResults.map((section, index) => {
       const score = section.score || 0;
@@ -427,16 +427,16 @@ const ResultPage = () => {
         : 'text-rose-700';
 
       const dotColor = isSkipped
-        ? '#94a3b8'
+        ? '#6b7280'
         : answer.isCorrect
-        ? '#22c55e'
-        : '#ef4444';
+        ? '#16a34a'
+        : '#dc2626';
 
       const barColor = isSkipped
-        ? '#cbd5e1'
+        ? '#d1d5db'
         : answer.isCorrect
-        ? (isSlow ? '#f59e0b' : '#22c55e')
-        : '#f43f5e';
+        ? '#86efac'
+        : '#fca5a5';
 
       return {
         xIndex: index + 1,
@@ -1062,54 +1062,48 @@ const ResultPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
             <div>
               <h2 className="text-base sm:text-lg font-semibold text-slate-900">Performance vs Time Trend</h2>
-              <p className="text-sm text-slate-600 mt-1">
-                Trend drops when answers are incorrect, skipped, or slower than expected section pace.
-              </p>
-            </div>
-            <div className="text-xs text-slate-500 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5">
-              Baseline starts at 50 and dynamically adjusts per question.
             </div>
           </div>
 
           {performanceChartData.length > 0 ? (
             <>
               <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-emerald-700 font-semibold inline-flex items-center gap-1.5">
+                <div className="rounded-lg border border-slate-300 bg-white px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-600 font-semibold inline-flex items-center gap-1.5">
                     <FiCheckCircle className="w-3.5 h-3.5" /> On Pace
                   </p>
-                  <p className="text-sm font-bold text-emerald-900 mt-0.5">{performanceInsights.onPace}</p>
+                  <p className="text-sm font-bold text-slate-900 mt-0.5">{performanceInsights.onPace}</p>
                 </div>
-                <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-amber-700 font-semibold inline-flex items-center gap-1.5">
+                <div className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-600 font-semibold inline-flex items-center gap-1.5">
                     <FiClock className="w-3.5 h-3.5" /> Slow Pace
                   </p>
-                  <p className="text-sm font-bold text-amber-800 mt-0.5">{performanceInsights.slow}</p>
+                  <p className="text-sm font-bold text-slate-900 mt-0.5">{performanceInsights.slow}</p>
                 </div>
-                <div className="rounded-lg border border-sky-200 bg-sky-50/70 px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-sky-700 font-semibold inline-flex items-center gap-1.5">
+                <div className="rounded-lg border border-slate-300 bg-white px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-600 font-semibold inline-flex items-center gap-1.5">
                     <FiTrendingUp className="w-3.5 h-3.5" /> Up Moves
                   </p>
-                  <p className="text-sm font-bold text-sky-800 mt-0.5">{performanceInsights.improved}</p>
+                  <p className="text-sm font-bold text-slate-900 mt-0.5">{performanceInsights.improved}</p>
                 </div>
-                <div className="rounded-lg border border-rose-200 bg-rose-50/70 px-3 py-2">
-                  <p className="text-[11px] uppercase tracking-wide text-rose-700 font-semibold inline-flex items-center gap-1.5">
+                <div className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2">
+                  <p className="text-[11px] uppercase tracking-wide text-slate-600 font-semibold inline-flex items-center gap-1.5">
                     <FiTrendingDown className="w-3.5 h-3.5" /> Down Moves
                   </p>
-                  <p className="text-sm font-bold text-rose-800 mt-0.5">{performanceInsights.dropped}</p>
+                  <p className="text-sm font-bold text-slate-900 mt-0.5">{performanceInsights.dropped}</p>
                 </div>
               </div>
 
-              <div className="mt-4 h-80 w-full rounded-xl border border-slate-200 bg-slate-50/40 p-2 sm:p-3 [&_.recharts-wrapper:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-surface:focus]:outline-none">
+              <div className="mt-4 h-80 w-full rounded-xl border border-slate-300 bg-linear-to-b from-white to-slate-50 p-2 sm:p-3 shadow-sm [&_.recharts-wrapper:focus]:outline-none [&_.recharts-layer:focus]:outline-none [&_.recharts-surface:focus]:outline-none">
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={performanceChartData} margin={{ top: 10, right: 14, left: 0, bottom: 0 }} accessibilityLayer={false}>
                     <defs>
                       <linearGradient id="performanceFill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#0f172a" stopOpacity={0.26} />
-                        <stop offset="100%" stopColor="#0f172a" stopOpacity={0.02} />
+                        <stop offset="0%" stopColor="#0f172a" stopOpacity={0.22} />
+                        <stop offset="100%" stopColor="#0f172a" stopOpacity={0.03} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <CartesianGrid strokeDasharray="2 4" stroke="#dbe3ee" vertical={false} />
                     <XAxis dataKey="xIndex" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={{ stroke: '#cbd5e1' }} tickLine={{ stroke: '#cbd5e1' }} />
                     <YAxis
                       yAxisId="perf"
@@ -1128,8 +1122,11 @@ const ResultPage = () => {
                       width={40}
                     />
                     <Tooltip content={<PerformanceTooltip />} />
-                    <Legend wrapperStyle={{ fontSize: 11 }} />
-                    <ReferenceLine yAxisId="perf" y={50} stroke="#94a3b8" strokeDasharray="4 4" />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                      formatter={(value) => <span style={{ color: '#334155', fontWeight: 600 }}>{value}</span>}
+                    />
+                    <ReferenceLine yAxisId="perf" y={50} stroke="#64748b" strokeDasharray="4 4" />
                     <Bar yAxisId="time" dataKey="timeSpent" name="Time Spent (sec)" barSize={13} radius={[4, 4, 0, 0]} isAnimationActive animationDuration={750}>
                       {performanceChartData.map((entry, index) => (
                         <Cell key={`${entry.xIndex}-bar-${index}`} fill={entry.barColor} />
