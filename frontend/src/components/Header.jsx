@@ -1,13 +1,28 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiLogOut, FiUser, FiShield } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiChevronDown } from 'react-icons/fi';
 import { BsLightningFill } from 'react-icons/bs';
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = () => {
+    setMenuOpen(false);
     logout();
     navigate('/login');
   };
@@ -31,50 +46,61 @@ const Header = () => {
             </Link>
           </div>
 
-          {/* User Pill */}
-          <div className="flex items-center rounded-xl border border-slate-300 bg-white px-1.5 sm:px-2 py-1.5 sm:py-2 shadow-sm">
-            {user?.role === 'admin' ? (
-              <div className="flex items-center gap-2 sm:gap-3 px-1.5 sm:px-2 rounded-lg">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-900 rounded-lg flex items-center justify-center ring-1 ring-slate-800/70">
-                  <FiShield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                </div>
-                <div className="text-left hidden sm:block">
-                  <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name}</p>
-                  <span className="inline-flex mt-0.5 px-2 py-0.5 bg-slate-900 text-white rounded-full text-[10px] font-bold tracking-wide">ADMIN</span>
-                </div>
-              </div>
-            ) : (
-              <Link
-                to="/profile"
-                className="flex items-center gap-2 sm:gap-3 px-1.5 sm:px-2 rounded-lg hover:bg-slate-100 transition"
-              >
-                {user?.profilePicture ? (
-                  <img
-                    src={user.profilePicture}
-                    alt={user.name}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg object-cover ring-1 ring-slate-300"
-                  />
-                ) : (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-slate-900 rounded-lg flex items-center justify-center ring-1 ring-slate-800/70">
-                    <FiUser className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                  </div>
-                )}
-                <div className="text-left hidden sm:block">
-                  <p className="text-sm font-semibold text-slate-900 leading-tight">{user?.name}</p>
-                  <span className="inline-flex mt-0.5 px-2 py-0.5 bg-slate-100 border border-slate-200 text-slate-700 rounded-full text-[10px] font-semibold tracking-wide">USER</span>
-                </div>
-              </Link>
-            )}
-
-            <div className="mx-1 sm:mx-2 h-7 sm:h-8 w-px bg-slate-300"></div>
-
+          {/* User Menu */}
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-slate-900 text-white rounded-lg hover:bg-black transition-all font-medium text-sm"
+              type="button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              className="group flex items-center gap-2 rounded-full border border-slate-300 bg-white py-1.5 pl-1.5 pr-2 shadow-sm hover:shadow transition"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
             >
-              <FiLogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt={user?.name || 'User'}
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover ring-2 ring-slate-200"
+                />
+              ) : (
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 flex items-center justify-center ring-2 ring-slate-200">
+                  <FiUser className="w-4 h-4 text-white" />
+                </div>
+              )}
+
+              <div className="hidden sm:block text-left pr-0.5">
+                <p className="text-xs font-semibold text-slate-900 leading-tight max-w-28 truncate">{user?.name}</p>
+              </div>
+
+              <FiChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
             </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white shadow-xl p-1.5 z-50">
+                <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{user?.name}</p>
+                </div>
+
+                {user?.role !== 'admin' && (
+                  <Link
+                    to="/profile"
+                    onClick={() => setMenuOpen(false)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    <FiUser className="w-4 h-4" />
+                    Profile
+                  </Link>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+                >
+                  <FiLogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

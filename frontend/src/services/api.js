@@ -55,7 +55,7 @@ export const adminQuizAPI = {
   uploadQuestionImage: (formData) => api.post('/admin/quiz/upload-image', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  getMyQuizzes: () => api.get('/admin/quiz/my-quizzes'),
+  getMyQuizzes: (params = {}) => api.get('/admin/quiz/my-quizzes', { params }),
   updateQuiz: (quizId, data) => api.put(`/admin/quiz/${quizId}`, data),
   deleteQuiz: (quizId) => api.delete(`/admin/quiz/${quizId}`),
   getQuizById: (quizId) => api.get(`/admin/quiz/${quizId}`),

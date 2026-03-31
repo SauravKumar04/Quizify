@@ -149,6 +149,14 @@ const App = () => {
             }
           />
           <Route
+            path="/admin/edit-quiz/:quizId"
+            element={
+              <ProtectedRoute allowedRole="admin">
+                <CreateQuizPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/contests"
             element={
               <ProtectedRoute allowedRole="admin">

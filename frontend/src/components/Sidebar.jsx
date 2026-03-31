@@ -26,7 +26,7 @@ const Sidebar = () => {
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="lg:hidden fixed bottom-4 left-4 z-50 w-12 h-12 bg-slate-900 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-800 transition"
+        className="lg:hidden fixed bottom-4 left-4 z-50 w-12 h-12 rounded-full border border-slate-700 bg-slate-900 text-white shadow-lg flex items-center justify-center hover:bg-slate-800 transition"
       >
         <FiMenu className="w-5 h-5" />
       </button>
@@ -34,7 +34,7 @@ const Sidebar = () => {
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
+          className="lg:hidden fixed inset-0 bg-black/55 z-50"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -42,8 +42,9 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:relative inset-y-0 left-0 z-50
-        w-64 bg-white border-r border-gray-200 
-        min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-4rem)]
+        w-64 bg-white backdrop-blur border-r border-slate-100 shadow-[0_10px_30px_rgba(15,23,42,0.06)]
+        rounded-r-3xl lg:rounded-3xl lg:my-3 lg:ml-3
+        min-h-[calc(100vh-4rem)] lg:min-h-[calc(100vh-5.5rem)]
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         lg:block
@@ -57,14 +58,27 @@ const Sidebar = () => {
         </button>
 
         <nav className="p-4 pt-12 lg:pt-4">
-          <div className="mb-6 px-4 py-3 bg-slate-100 rounded-lg border border-slate-200">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="w-1 h-4 bg-slate-900 rounded-full"></span>
-              <span className="text-sm font-semibold text-slate-900">Navigation</span>
+          <div className="mb-5 rounded-2xl border border-slate-100 bg-white px-3.5 py-3 shadow-[0_8px_20px_rgba(15,23,42,0.04)]">
+            <div className="flex items-center gap-3">
+              {user?.profilePicture ? (
+                <img
+                  src={user.profilePicture}
+                  alt={user?.name || 'User'}
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-200"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center ring-2 ring-slate-200">
+                  <FiUser className="w-5 h-5 text-white" />
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900 truncate">{user?.name}</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">{user?.role === 'admin' ? 'Admin Panel' : 'Student Area'}</p>
+              </div>
             </div>
-            <p className="text-xs text-slate-600">{user?.role === 'admin' ? 'Admin Panel' : 'User Panel'}</p>
           </div>
 
+          <p className="px-2 mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Navigation</p>
           <ul className="space-y-2">
             {links.map((link) => {
               const Icon = link.icon;
@@ -75,13 +89,13 @@ const Sidebar = () => {
                   <Link
                     to={link.path}
                     onClick={() => setIsOpen(false)}
-                    className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all duration-200 ${
                       isActive
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'text-slate-700 hover:bg-slate-50'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-100 hover:bg-slate-50 hover:border-slate-200'
                     }`}
                   >
-                    <div className={`p-2 rounded-lg ${
+                    <div className={`p-2 rounded-lg transition-colors ${
                       isActive 
                         ? 'bg-white/20' 
                         : 'bg-slate-100 group-hover:bg-slate-200'
@@ -96,21 +110,6 @@ const Sidebar = () => {
               );
             })}
           </ul>
-
-          {/* Decorative Elements */}
-          <div className="mt-8 px-4">
-            <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex items-center gap-2 text-slate-700 mb-2">
-                <span className="w-1 h-3 bg-slate-900 rounded-full"></span>
-                <span className="text-xs font-semibold">Quick Tip</span>
-              </div>
-              <p className="text-xs text-slate-600">
-                {user?.role === 'admin' 
-                  ? 'Create engaging quizzes with images and detailed explanations!' 
-                  : 'Take quizzes to test your knowledge and track your progress!'}
-              </p>
-            </div>
-          </div>
         </nav>
       </aside>
     </>

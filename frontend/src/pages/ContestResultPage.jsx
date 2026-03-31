@@ -39,7 +39,7 @@ const ContestResultPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen dashboard-shell">
         <Header />
         <div className="flex">
           <Sidebar />
@@ -66,7 +66,7 @@ const ContestResultPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen dashboard-shell">
       <Header />
       <div className="flex">
         <Sidebar />
@@ -75,14 +75,14 @@ const ContestResultPage = () => {
             {/* Back Button */}
             <button
               onClick={() => navigate('/profile')}
-              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition rounded-lg px-2 py-1 hover:bg-white/70"
             >
               <FiArrowLeft className="w-4 h-4" />
               Back to Profile
             </button>
 
             {/* Results Summary Card */}
-            <div className="bg-white rounded-xl border-2 border-gray-100 p-4 sm:p-6 mb-6">
+            <div className="bg-linear-to-b from-white to-slate-50/70 rounded-2xl border border-slate-100 shadow-[0_12px_30px_rgba(15,23,42,0.07)] p-4 sm:p-6 mb-6">
               <div className="text-center">
                 {/* Contest Title */}
                 <div className="flex items-center justify-center gap-2 mb-6">
@@ -102,29 +102,29 @@ const ContestResultPage = () => {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4 mb-6">
-                  <div className="bg-emerald-50 rounded-xl p-3 sm:p-4 border border-emerald-200">
+                  <div className="bg-white rounded-2xl p-3 sm:p-4 border border-emerald-200/70 shadow-[0_6px_16px_rgba(15,23,42,0.05)]">
                     <FiCheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 mx-auto mb-2" />
                     <div className="text-2xl sm:text-3xl font-bold text-emerald-600">{result.score}</div>
                     <div className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">Correct</div>
                   </div>
-                  <div className="bg-red-50 rounded-xl p-3 sm:p-4 border border-red-200">
+                  <div className="bg-white rounded-2xl p-3 sm:p-4 border border-red-200/70 shadow-[0_6px_16px_rgba(15,23,42,0.05)]">
                     <FiXCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600 mx-auto mb-2" />
                     <div className="text-2xl sm:text-3xl font-bold text-red-600">
                       {result.totalQuestions - result.score}
                     </div>
                     <div className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">Incorrect</div>
                   </div>
-                  <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border border-gray-200">
+                  <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 shadow-[0_6px_16px_rgba(15,23,42,0.05)]">
                     <FiClock className="w-6 h-6 sm:w-8 sm:h-8 text-slate-900 mx-auto mb-2" />
                     <div className="text-xl sm:text-2xl font-bold text-slate-900">{formatTime(result.timeTaken)}</div>
                     <div className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">Time Taken</div>
                   </div>
-                  <div className="bg-purple-50 rounded-xl p-3 sm:p-4 border border-purple-200">
+                  <div className="bg-white rounded-2xl p-3 sm:p-4 border border-purple-200/70 shadow-[0_6px_16px_rgba(15,23,42,0.05)]">
                     <FiTarget className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 mx-auto mb-2" />
                     <div className="text-xl sm:text-2xl font-bold text-purple-600">{formatTime(result.avgTimePerQuestion || 0)}</div>
                     <div className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">Expected/Question</div>
                   </div>
-                  <div className="bg-amber-50 rounded-xl p-3 sm:p-4 border border-amber-200">
+                  <div className="bg-white rounded-2xl p-3 sm:p-4 border border-amber-200/70 shadow-[0_6px_16px_rgba(15,23,42,0.05)]">
                     <FiUsers className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600 mx-auto mb-2" />
                     <div className="text-2xl sm:text-3xl font-bold text-amber-600">#{result.rank}</div>
                     <div className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">of {result.totalParticipants}</div>
@@ -135,14 +135,14 @@ const ContestResultPage = () => {
                 <div className="flex items-center justify-center gap-3">
                   <button
                     onClick={() => navigate(`/contest/${result.contestId}/leaderboard`)}
-                    className="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-all font-semibold text-sm sm:text-base"
+                    className="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl hover:bg-slate-800 transition-all font-semibold text-sm sm:text-base shadow-sm"
                   >
                     <FiAward className="w-4 h-4 sm:w-5 sm:h-5" />
                     View Leaderboard
                   </button>
                   <button
                     onClick={() => navigate('/profile')}
-                    className="flex items-center justify-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-xl border-2 border-slate-200 hover:border-slate-300 transition-all font-semibold text-sm sm:text-base"
+                    className="flex items-center justify-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all font-semibold text-sm sm:text-base shadow-sm"
                   >
                     <FiArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     Back to Profile
@@ -172,7 +172,7 @@ const ContestResultPage = () => {
                 return (
                 <div
                   key={index}
-                  className={`bg-white rounded-xl shadow-sm p-4 sm:p-5 border-l-4 ${
+                  className={`bg-white rounded-2xl shadow-[0_8px_22px_rgba(15,23,42,0.06)] p-4 sm:p-5 border-l-4 border border-slate-100 ${
                     answer.isCorrect ? 'border-emerald-500' : 'border-red-500'
                   }`}
                 >

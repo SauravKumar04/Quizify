@@ -9,10 +9,15 @@ import QuizCard from '../components/QuizCard';
 import LoadingAnimation from '../components/LoadingAnimation';
 import { FiPlus, FiAward, FiUsers, FiBarChart2, FiTrendingUp, FiFileText } from 'react-icons/fi';
 
+const QUIZZES_PAGE_SIZE = 12;
+
 const AdminDashboard = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [contests, setContests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMoreQuizzes, setLoadingMoreQuizzes] = useState(false);
+  const [quizPage, setQuizPage] = useState(1);
+  const [hasMoreQuizzes, setHasMoreQuizzes] = useState(false);
   const [stats, setStats] = useState({
     totalQuizzes: 0,
     totalContests: 0,
@@ -32,22 +37,26 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     try {
       const [quizzesRes, contestsRes] = await Promise.all([
-        adminQuizAPI.getMyQuizzes(),
+        adminQuizAPI.getMyQuizzes({ page: 1, limit: QUIZZES_PAGE_SIZE }),
         adminContestAPI.getMyContests(),
       ]);
       
-      const quizzesData = quizzesRes.data.quizzes;
-      const contestsData = contestsRes.data.contests;
+      const quizzesData = quizzesRes.data?.quizzes || [];
+      const contestsData = contestsRes.data?.contests || [];
+      const quizPagination = quizzesRes.data?.pagination || {};
+      const quizStats = quizzesRes.data?.stats || {};
       
       setQuizzes(quizzesData);
+      setQuizPage(1);
+      setHasMoreQuizzes(Boolean(quizPagination.hasMore));
       setContests(contestsData);
       
       // Calculate stats
-      const totalQuizAttempts = quizzesData.reduce((acc, q) => acc + (q.attemptCount || 0), 0);
+      const totalQuizAttempts = quizStats.totalQuizAttempts ?? quizzesData.reduce((acc, q) => acc + (q.attemptCount || 0), 0);
       const totalContestParticipants = contestsData.reduce((acc, c) => acc + (c.participantCount || 0), 0);
       
       setStats({
-        totalQuizzes: quizzesData.length,
+        totalQuizzes: quizStats.totalQuizzes ?? quizzesData.length,
         totalContests: contestsData.length,
         totalQuizAttempts,
         totalContestParticipants,
@@ -64,6 +73,27 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleShowMoreQuizzes = async () => {
+    if (loadingMoreQuizzes || !hasMoreQuizzes) return;
+
+    setLoadingMoreQuizzes(true);
+    const nextPage = quizPage + 1;
+
+    try {
+      const response = await adminQuizAPI.getMyQuizzes({ page: nextPage, limit: QUIZZES_PAGE_SIZE });
+      const incomingQuizzes = response.data?.quizzes || [];
+      const pagination = response.data?.pagination || {};
+
+      setQuizzes((prev) => [...prev, ...incomingQuizzes]);
+      setQuizPage(nextPage);
+      setHasMoreQuizzes(Boolean(pagination.hasMore));
+    } catch (error) {
+      toast.error('Failed to load more quizzes');
+    } finally {
+      setLoadingMoreQuizzes(false);
+    }
+  };
+
   const handleDeleteQuiz = async (quizId) => {
     if (confirm('Are you sure you want to delete this quiz?')) {
       try {
@@ -77,15 +107,18 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="min-h-screen dashboard-shell overflow-x-hidden">
       <Header />
       <div className="flex">
         <Sidebar />
         <main className="flex-1 p-4 sm:p-6 lg:p-8 min-w-0">
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+            <div className="premium-surface p-5 sm:p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
+                <p className="inline-flex items-center rounded-full border border-slate-300 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+                  Control Center
+                </p>
+                <h1 className="mt-3 text-2xl sm:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
                 <p className="text-slate-600 mt-1 sm:mt-2 text-sm sm:text-base">Overview & Analytics</p>
               </div>
               <div className="flex items-center gap-3">
@@ -114,9 +147,9 @@ const AdminDashboard = () => {
               <>
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                  <div className="premium-stat-card p-3 sm:p-4 hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg shrink-0">
                         <FiFileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                       </div>
                       <div className="min-w-0">
@@ -126,9 +159,9 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                  <div className="premium-stat-card p-3 sm:p-4 hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg flex-shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg shrink-0">
                         <FiAward className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
                       </div>
                       <div className="min-w-0">
@@ -138,9 +171,9 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                  <div className="premium-stat-card p-3 sm:p-4 hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg flex-shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-green-100 rounded-lg shrink-0">
                         <FiUsers className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                       </div>
                       <div className="min-w-0">
@@ -150,9 +183,9 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                  <div className="premium-stat-card p-3 sm:p-4 hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg flex-shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-orange-100 rounded-lg shrink-0">
                         <FiTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
                       </div>
                       <div className="min-w-0">
@@ -162,9 +195,9 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                  <div className="premium-stat-card p-3 sm:p-4 hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg flex-shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-emerald-100 rounded-lg shrink-0">
                         <FiBarChart2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                       </div>
                       <div className="min-w-0">
@@ -174,9 +207,9 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4">
+                  <div className="premium-stat-card p-3 sm:p-4 hover:-translate-y-0.5 transition-all">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                      <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg shrink-0">
                         <FiAward className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
                       </div>
                       <div className="min-w-0">
@@ -196,7 +229,7 @@ const AdminDashboard = () => {
                         View All →
                       </Link>
                     </div>
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="premium-surface overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead className="bg-slate-50">
@@ -256,20 +289,36 @@ const AdminDashboard = () => {
                     <h2 className="text-lg sm:text-xl font-bold text-slate-900">Your Quizzes</h2>
                   </div>
                   {quizzes.length === 0 ? (
-                    <div className="text-center py-8 sm:py-12 bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="text-center py-8 sm:py-12 premium-surface">
                       <p className="text-slate-500 text-sm sm:text-base">No quizzes created yet. Create your first quiz!</p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      {quizzes.map((quiz) => (
-                        <QuizCard
-                          key={quiz._id}
-                          quiz={quiz}
-                          onDelete={() => handleDeleteQuiz(quiz._id)}
-                          isAdmin={true}
-                        />
-                      ))}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {quizzes.map((quiz) => (
+                          <QuizCard
+                            key={quiz._id}
+                            quiz={quiz}
+                            onEdit={() => navigate(`/admin/edit-quiz/${quiz._id}`)}
+                            onDelete={() => handleDeleteQuiz(quiz._id)}
+                            isAdmin={true}
+                          />
+                        ))}
+                      </div>
+
+                      {hasMoreQuizzes && (
+                        <div className="mt-6 flex justify-center">
+                          <button
+                            type="button"
+                            onClick={handleShowMoreQuizzes}
+                            disabled={loadingMoreQuizzes}
+                            className="px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-sm hover:bg-slate-50 disabled:opacity-60"
+                          >
+                            {loadingMoreQuizzes ? 'Loading...' : 'Show More'}
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </>

@@ -4,7 +4,7 @@ import { FiLoader, FiPlus, FiSave } from 'react-icons/fi';
 import SectionForm from './SectionForm';
 import { hasRichTextContent, sanitizeRichTextHtml } from '../../utils/richText';
 
-const DRAFT_KEY = 'quiz_multisection_draft';
+const DEFAULT_DRAFT_KEY = 'quiz_multisection_draft';
 const SUBJECT_OPTIONS = [
   { value: 'full-test', label: 'Full Test' },
   { value: 'aptitude', label: 'Aptitude' },
@@ -35,7 +35,7 @@ const createEmptySection = (index) => ({
   questions: [createEmptyQuestion()],
 });
 
-const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
+const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage, initialQuiz, mode = 'create', draftKey = DEFAULT_DRAFT_KEY }) => {
   const [quiz, setQuiz] = useState({
     title: '',
     description: '',
@@ -43,9 +43,20 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
     sections: [createEmptySection(0)],
   });
   const [showSubmitConfirmModal, setShowSubmitConfirmModal] = useState(false);
+  const isEditMode = mode === 'edit';
 
   useEffect(() => {
-    const draft = localStorage.getItem(DRAFT_KEY);
+    if (initialQuiz?.sections?.length) {
+      setQuiz({
+        title: initialQuiz.title || '',
+        description: initialQuiz.description || '',
+        subject: initialQuiz.subject || 'full-test',
+        sections: initialQuiz.sections,
+      });
+      return;
+    }
+
+    const draft = localStorage.getItem(draftKey);
     if (!draft) return;
 
     try {
@@ -60,11 +71,11 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
     } catch (error) {
       console.error('Failed to parse draft', error);
     }
-  }, []);
+  }, [draftKey, initialQuiz]);
 
   useEffect(() => {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(quiz));
-  }, [quiz]);
+    localStorage.setItem(draftKey, JSON.stringify(quiz));
+  }, [draftKey, quiz]);
 
   const totalTimeLimit = useMemo(() => quiz.sections.reduce((sum, section) => sum + (Number(section.timeLimit) || 0), 0), [quiz.sections]);
 
@@ -218,7 +229,7 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
     const payload = buildPayload();
     setShowSubmitConfirmModal(false);
     await onSubmitQuiz(payload);
-    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(draftKey);
   };
 
   return (
@@ -310,7 +321,9 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-semibold disabled:opacity-60"
         >
           {saving ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiSave className="w-4 h-4" />}
-          {saving ? 'Submitting Quiz...' : 'Create Quiz'}
+          {saving
+            ? (isEditMode ? 'Updating Quiz...' : 'Submitting Quiz...')
+            : (isEditMode ? 'Update Quiz' : 'Create Quiz')}
         </button>
       </div>
 
@@ -319,7 +332,9 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
           <div className="bg-white rounded-xl border border-slate-200 shadow-xl max-w-md w-full p-5">
             <h3 className="text-lg font-bold text-slate-900">Submit Quiz?</h3>
             <p className="text-sm text-slate-600 mt-2">
-              Please confirm once before creating this quiz. You can still edit it later from the admin dashboard.
+              {isEditMode
+                ? 'Please confirm to save your quiz updates.'
+                : 'Please confirm once before creating this quiz. You can still edit it later from the admin dashboard.'}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -334,7 +349,7 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
                 onClick={confirmSubmitQuiz}
                 className="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800 font-semibold"
               >
-                Confirm Submit
+                {isEditMode ? 'Confirm Update' : 'Confirm Submit'}
               </button>
             </div>
           </div>
@@ -346,7 +361,7 @@ const QuizBuilder = ({ onSubmitQuiz, saving, onCancel, uploadImage }) => {
           <div className="bg-white border border-slate-200 rounded-xl shadow-xl px-5 py-4 flex items-center gap-3">
             <FiLoader className="w-5 h-5 animate-spin text-slate-800" />
             <div>
-              <p className="text-sm font-semibold text-slate-900">Submitting quiz...</p>
+              <p className="text-sm font-semibold text-slate-900">{isEditMode ? 'Updating quiz...' : 'Submitting quiz...'}</p>
               <p className="text-xs text-slate-600">Please wait while we save sections and questions.</p>
             </div>
           </div>

@@ -1,5 +1,6 @@
 const Quiz = require('../models/Quiz');
 const Question = require('../models/Question');
+const Result = require('../models/Result');
 
 const SUBJECT_OPTIONS = new Set([
   'full-test',
@@ -141,27 +142,58 @@ exports.createQuiz = async (req, res) => {
 
 exports.getAdminQuizzes = async (req, res) => {
   try {
-    const Result = require('../models/Result');
-
-    const quizzes = await Quiz.find({
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), 50);
+    const skip = (page - 1) * limit;
+    const quizFilter = {
       createdBy: req.userId,
       quizType: 'manual',
-    })
-      .populate('questions')
-      .populate({ path: 'sections.questions' })
-      .sort({ createdAt: -1 });
+    };
 
-    const quizzesWithStats = await Promise.all(
-      quizzes.map(async (quiz) => {
-        const attemptCount = await Result.countDocuments({ quizId: quiz._id });
-        return {
-          ...quiz.toObject(),
-          attemptCount,
-        };
-      })
-    );
+    const [quizzes, totalQuizzes, allQuizIds] = await Promise.all([
+      Quiz.find(quizFilter)
+        .populate('questions')
+        .populate({ path: 'sections.questions' })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Quiz.countDocuments(quizFilter),
+      Quiz.find(quizFilter).distinct('_id'),
+    ]);
 
-    res.status(200).json({ quizzes: quizzesWithStats });
+    const pageQuizIds = quizzes.map((quiz) => quiz._id);
+
+    const attemptAgg = pageQuizIds.length > 0
+      ? await Result.aggregate([
+          { $match: { quizId: { $in: pageQuizIds } } },
+          { $group: { _id: '$quizId', count: { $sum: 1 } } },
+        ])
+      : [];
+
+    const attemptCountMap = new Map(attemptAgg.map((item) => [String(item._id), item.count]));
+
+    const totalQuizAttempts = allQuizIds.length > 0
+      ? await Result.countDocuments({ quizId: { $in: allQuizIds } })
+      : 0;
+
+    const quizzesWithStats = quizzes.map((quiz) => ({
+      ...quiz.toObject(),
+      attemptCount: attemptCountMap.get(String(quiz._id)) || 0,
+    }));
+
+    res.status(200).json({
+      quizzes: quizzesWithStats,
+      pagination: {
+        page,
+        limit,
+        total: totalQuizzes,
+        hasMore: skip + quizzesWithStats.length < totalQuizzes,
+      },
+      stats: {
+        totalQuizzes,
+        totalQuizAttempts,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch quizzes', error: error.message });
   }
@@ -233,9 +265,12 @@ exports.getQuizById = async (req, res) => {
   try {
     const { quizId } = req.params;
 
-    const quiz = await populateQuiz(quizId);
+    const quiz = await Quiz.findOne({ _id: quizId, createdBy: req.userId })
+      .populate('questions')
+      .populate({ path: 'sections.questions' });
+
     if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
+      return res.status(404).json({ message: 'Quiz not found or unauthorized' });
     }
 
     res.status(200).json({ quiz });
